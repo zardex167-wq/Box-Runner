@@ -1,235 +1,8 @@
 -- main.lua
 -- Geo Dash (with new block types: Transparent, Platform, Mini Spike, Big Spike)
 -- Tile size = 32px
-
----------------------------------------------------------
--- CONFIG / CONSTANTS
----------------------------------------------------------
-TILE = 32
-WindowWidth = 800
-WindowHeight = 600
-
-Gravity = 1400          -- gravity (tuned for snappy jumps)
-JUMP_VELOCITY = -500    -- initial jump impulse
-Ss = 200                -- Scroll speed
-
--- Player
-Player = {
-    x = 100,
-    y = 0,
-    width = 32,
-    height = 32,
-    yVelocity = 0,
-    isOnGround = true
-}
-
--- UI / Buttons
-Buttons = {
-    start = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Start Game"},
-    levelselect = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Level Select"},
-    settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"},
-    exit = {x = WindowWidth / 2 - 100, y = 430, width = 200, height = 50, text = "Exit"}
-}
-
-ButtonPause = { x = WindowWidth - 110, y = 10, width = 100, height = 30, text = "Pause" }
-
--- Level complete screen buttons
-LevelCompleteButtons = {
-    next = {x = WindowWidth/2 - 120, y = 330, width = 240, height = 50, text = "Next Level"},
-    menu = {x = WindowWidth/2 - 120, y = 400, width = 240, height = 50, text = "Back To Menu"}
-}
-
--- Sprites
-Sprites = {
-    block       = nil, -- Sprites/block.png
-    coin        = nil, -- Sprites/coin.png
-    player      = nil, -- Sprites/player.png
-    spike       = nil, -- Sprites/spike.png
-    transparent = nil, -- Sprites/transparent.png
-    platform    = nil, -- Sprites/platform.png
-    minispike   = nil, -- Sprites/minispike.png
-    bigspike    = nil  -- Sprites/bigspike.png
-}
-
----------------------------------------------------------
--- SAFE SPRITE LOADING & DRAW HELPERS
----------------------------------------------------------
-local function safeLoad(path)
-    if path and love.filesystem.getInfo(path) then
-        local ok, img = pcall(love.graphics.newImage, path)
-        if ok then return img end
-    end
-    return nil
-end
-
-function LoadSprites()
-    Sprites.block       = safeLoad("Sprites/block.png")
-    Sprites.coin        = safeLoad("Sprites/coin.png")
-    Sprites.player      = safeLoad("Sprites/player.png")
-    Sprites.spike       = safeLoad("Sprites/spike.png")
-    Sprites.transparent = safeLoad("Sprites/transparent.png")
-    Sprites.platform    = safeLoad("Sprites/platform.png")
-    Sprites.minispike   = safeLoad("Sprites/minispike.png")
-    Sprites.bigspike    = safeLoad("Sprites/bigspike.png")
-end
-
--- draw sprite scaled to tile area, or fallback colored rect
-function DrawTileSprite(img, x, y, w, h, r, g, b)
-    if img then
-        local iw, ih = img:getWidth(), img:getHeight()
-        if iw == 0 or ih == 0 then
-            love.graphics.setColor(r or 1, g or 1, b or 1)
-            love.graphics.rectangle("fill", x, y, w, h)
-            love.graphics.setColor(1,1,1)
-            return
-        end
-        local sx, sy = w / iw, h / ih
-        love.graphics.setColor(1,1,1)
-        love.graphics.draw(img, x, y, 0, sx, sy)
-    else
-        love.graphics.setColor(r or 1, g or 1, b or 1)
-        love.graphics.rectangle("fill", x, y, w, h)
-        love.graphics.setColor(1,1,1)
-    end
-end
-
----------------------------------------------------------
--- GameState
----------------------------------------------------------
-GameState = {
-    active = "menu",
-    menu = "menu",
-    play = "play",
-    gameover = "gameover",
-    settings = "settings",
-    levelselect = "levelselect",
-    pause = "pause",
-    levelcomplete = "levelcomplete"
-}
-
----------------------------------------------------------
--- Level Buttons (grid)
----------------------------------------------------------
-LevelButtons = {}
-do
-    local startX = WindowWidth / 2 - 320
-    local startY = 140
-    local gapX = 160
-    local gapY = 80
-    local columns = 4
-    local totalLevels = 20
-    for i = 1, totalLevels do
-        local row = math.floor((i - 1) / columns)
-        local col = (i - 1) % columns
-        table.insert(LevelButtons, {
-            x = startX + col * gapX,
-            y = startY + row * gapY,
-            width = 140,
-            height = 60,
-            text = "Level " .. i,
-            id = i
-        })
-    end
-end
-
----------------------------------------------------------
--- OBJECT TABLES (world positions)
----------------------------------------------------------
-GroundObjects = {}   -- { x,y,width,height }
-SpikeObjects = {}
-CoinObjects = {}
-BlockObjects = {}
-FinishObjects = {}
-
--- NEW object lists:
-TransparentObjects = {} -- T (no collision)
-PlatformObjects    = {} -- P (top-only collision; half height tile visually if desired)
-MiniSpikeObjects   = {} -- V (half height, 16px tall)
-BigSpikeObjects    = {} -- W (double height, 64px tall)
-
-TotalCoinsCollected = 0
-CurrentLevel = nil
-CurrentLevelID = 1
-
----------------------------------------------------------
--- INLINE LEVELS (supports new chars: T,P,V,W)
--- Characters: G ground, B block, S spike, C coin, F finish, T transparent, P platform, V minispike, W bigspike
----------------------------------------------------------
-Levels = {
-    [1] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                           C                                    ",
-            "                     C                                                          ",
-            "             B      B       V    S            P       B         F              ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [2] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "              C               C                                                 ",
-            "         B     B     B   W     S                 B       B          F           ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [3] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "        T                                                                       ",
-            "        T                                                                       ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "                                                                                ",
-            "      C           B    C                         B                              ",
-            "   B   B     B       B      S                  BBBBB               F          ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    }
-}
-
+local L = require ("level")
+local C = require ("conf")
 ---------------------------------------------------------
 -- LOVE LOAD
 ---------------------------------------------------------
@@ -242,6 +15,7 @@ function love.load()
         Font  = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 14)
     else
         Font1 = love.graphics.newFont(28)
+        Font2 = love.graphics.newFont(21)
         Font  = love.graphics.newFont(14)
     end
     love.graphics.setFont(Font)
@@ -249,88 +23,12 @@ function love.load()
     LoadSprites()
     GameState.active = GameState.menu
 end
-
----------------------------------------------------------
--- AABB helper (rectangle vs rectangle)
----------------------------------------------------------
-local function AABBRect(ax, ay, aw, ah, bx, by, bw, bh)
-    return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
-end
-
----------------------------------------------------------
--- LEVEL PARSER: from rows -> object tables
----------------------------------------------------------
-function LoadLevel(levelID)
-    if not Levels[levelID] then
-        CurrentLevel = nil
-        CurrentLevelID = 0
-        GameState.active = GameState.menu
-        return
-    end
-
-    CurrentLevelID = levelID
-    CurrentLevel = Levels[levelID]
-
-    -- clear object lists
-    GroundObjects = {}
-    SpikeObjects = {}
-    CoinObjects = {}
-    BlockObjects = {}
-    FinishObjects = {}
-    TransparentObjects = {}
-    PlatformObjects = {}
-    MiniSpikeObjects = {}
-    BigSpikeObjects = {}
-
-    local rows = CurrentLevel.rows
-
-    for row = 1, #rows do
-        local line = rows[row]
-        for col = 1, #line do
-            local ch = line:sub(col, col)
-            local x = (col - 1) * TILE
-            local y = (row - 1) * TILE
-
-            if ch == "G" then
-                table.insert(GroundObjects, {x = x, y = y, width = TILE, height = TILE})
-            elseif ch == "B" then
-                table.insert(BlockObjects, {x = x, y = y, width = TILE, height = TILE})
-            elseif ch == "S" then
-                table.insert(SpikeObjects, {x = x, y = y, width = TILE, height = TILE})
-            elseif ch == "C" then
-                table.insert(CoinObjects, {x = x, y = y, width = TILE, height = TILE, collected = false})
-            elseif ch == "F" then
-                table.insert(FinishObjects, {x = x, y = y, width = TILE, height = TILE})
-            elseif ch == "T" then
-                table.insert(TransparentObjects, {x = x, y = y, width = TILE, height = TILE})
-            elseif ch == "P" then
-                -- platform is half-height visually (player lands on top); store full tile but collision is top-only
-                table.insert(PlatformObjects, {x = x, y = y + (TILE/2), width = TILE, height = TILE/2})
-            elseif ch == "V" then
-                -- mini spike: half height (16px)
-                table.insert(MiniSpikeObjects, {x = x, y = y + (TILE/2), width = TILE, height = TILE/2})
-            elseif ch == "W" then
-                -- big spike: 2x height (place its top one tile above)
-                table.insert(BigSpikeObjects, {x = x, y = y - TILE, width = TILE, height = TILE * 2})
-            end
-        end
-    end
-
-    -- reset player
-    Player.x = 100
-    Player.y = WindowHeight - 150
-    Player.yVelocity = 0
-    Player.isOnGround = false
-    TotalCoinsCollected = 0
-end
-
 ---------------------------------------------------------
 -- UPDATE PLAYER (Geometry Dash style) - improved
 ---------------------------------------------------------
 function UpdatePlayer(dt)
     if not CurrentLevel then return end
 
-    local prevY = Player.y
     Player.y = Player.y + Player.yVelocity * dt
     Player.yVelocity = Player.yVelocity + Gravity * dt
 
@@ -357,7 +55,7 @@ function UpdatePlayer(dt)
             end
         end
         return false
-    end
+    end 
 
     -- prefer landing on block then ground then platform
     if resolveLanding(BlockObjects) then return end
@@ -392,7 +90,6 @@ function UpdatePlayer(dt)
     resolveHeadHit(BlockObjects)
     resolveHeadHit(GroundObjects)
 end
-
 ---------------------------------------------------------
 -- UPDATE OBJECTS (scroll left; collision checks)
 ---------------------------------------------------------
@@ -548,7 +245,7 @@ end
 
 function love.keypressed(key)
     if key == "escape" then love.event.quit() end
-    if key == "return" and GameState.active ~= GameState.play then
+    if key == "return" then
         GameState.active = GameState.menu
     end
 end
