@@ -9,9 +9,9 @@ TILE = 32
 WindowWidth = 800
 WindowHeight = 600
 
-Gravity = 1400          -- gravity (tuned for snappy jumps)
-JUMP_VELOCITY = -500    -- initial jump impulse
-Ss = 200                -- Scroll speed
+Gravity = (32 * 80)   -- 2560       -- gravity (tuned for snappy jumps)
+JUMP_VELOCITY = (-32 * 22)   --~800    -- initial jump impulse
+Ss = (32 * 6.4)   ---204.8                -- Scroll speed
 
 -- Player
 Player = {
@@ -20,7 +20,9 @@ Player = {
     width = 32,
     height = 32,
     yVelocity = 0,
-    isOnGround = true
+    isOnGround = true,
+    rotation = 0,
+    rotationSpeed = (math.pi * 2) 
 }
 
 prevX = Player.x
@@ -51,7 +53,8 @@ Sprites = {
     transparent = nil, -- Sprites/transparent.png
     platform    = nil, -- Sprites/platform.png
     minispike   = nil, -- Sprites/minispike.png
-    bigspike    = nil  -- Sprites/bigspike.png
+    bigspike    = nil,  -- Sprites/bigspike.png
+    flippedminispike = nil -- Sprites/flippedminispike.png
 }
 
 ---------------------------------------------------------
@@ -74,6 +77,7 @@ function LoadSprites()
     Sprites.platform    = safeLoad("Sprites/platform.png")
     Sprites.minispike   = safeLoad("Sprites/minispike.png")
     Sprites.bigspike    = safeLoad("Sprites/bigspike.png")
+    Sprites.flippedminispike = safeLoad("Sprites/flipped_mini_spike.png")
 end
 
 -- draw sprite scaled to tile area, or fallback colored rect
@@ -110,29 +114,57 @@ GameState = {
     levelcomplete = "levelcomplete"
 }
 
+LevelNames = {
+    "Scramble",
+    "Platformis",
+    "Shadow Run",
+    "Pulse Drift",
+    "Echo Breaker",
+    "Wave Storm",
+    "Neon Bloom",
+    "Frost Edge",
+    "Hyper Dash",
+    "Prism Crash",
+    "Quantum Leap",
+    "Star Burst",
+    "Vibe Flux",
+    "Lava Twist",
+    "Nightfall",
+    "Cyber Hop",
+    "Flash Tracer",
+    "Redwire",
+    "Moonstep",
+    "End Shift"
+}
+
 ---------------------------------------------------------
 -- Level Buttons (grid)
 ---------------------------------------------------------
 LevelButtons = {}
+
 do
     local startX = WindowWidth / 2 - 320
-    local startY = 140
+    local startY = 200 -- you can adjust this
     local gapX = 160
     local gapY = 80
     local columns = 4
     local totalLevels = 20
+
     for i = 1, totalLevels do
         local row = math.floor((i - 1) / columns)
         local col = (i - 1) % columns
+
         table.insert(LevelButtons, {
             x = startX + col * gapX,
             y = startY + row * gapY,
             width = 140,
             height = 60,
-            text = "Level " .. i,
+            text = "Level " .. i .. " " .. LevelNames[i],
             id = i
         })
     end
 end
+
+
 
 return conf

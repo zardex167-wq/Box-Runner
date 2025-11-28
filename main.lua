@@ -29,6 +29,17 @@ end
 function UpdatePlayer(dt)
     if not CurrentLevel then return end
 
+    if love.mouse.isDown(1) and Player.isOnGround then
+        Player.yVelocity = JUMP_VELOCITY
+    end
+
+        -- Only rotate if player is not on ground
+    if not Player.isOnGround then
+        Player.rotation = Player.rotation + Player.rotationSpeed * dt
+    else
+        Player.rotation = 0  -- reset rotation when landed
+    end
+
     Player.y = Player.y + Player.yVelocity * dt
     Player.yVelocity = Player.yVelocity + Gravity * dt
 
@@ -141,6 +152,17 @@ function UpdateObjects(dt)
         if s.x + s.width < -TILE then table.remove(BigSpikeObjects, i) end
     end
 
+    --FlippedMiniSpikeObjects
+    for i = #FlippedMiniSpikeObjects, 1, -1 do
+        local s = FlippedMiniSpikeObjects[i]
+        s.x = s.x - speed * dt
+        if AABBRect(Player.x, Player.y, Player.width, Player.height, s.x, s.y, s.width, s.height) then
+            GameState.active = GameState.gameover
+            return
+        end
+        if s.x + s.width < -TILE then table.remove(FlippedMiniSpikeObjects, i) end
+    end
+
     -- Transparent: scroll and cull (no collision)
     for i = #TransparentObjects, 1, -1 do
         local t = TransparentObjects[i]
@@ -178,7 +200,6 @@ function UpdateObjects(dt)
         if f.x + f.width < -TILE then table.remove(FinishObjects, i) end
     end
 end
-
 ---------------------------------------------------------
 -- INPUT: mouse / jump handling
 ---------------------------------------------------------
@@ -187,7 +208,7 @@ function love.mousepressed(x, y, button)
         for _, btn in pairs(Buttons) do
             if x >= btn.x and x <= btn.x + btn.width and y >= btn.y and y <= btn.y + btn.height then
                 if btn.text == "Start Game" then
-                    LoadLevel(1)
+                    LoadLevel(3)
                     GameState.active = GameState.play
                 elseif btn.text == "Level Select" then
                     GameState.active = GameState.levelselect
@@ -263,6 +284,47 @@ end
 ---------------------------------------------------------
 -- DRAW HELPERS
 ---------------------------------------------------------
+local function Drawblock()
+    -- draw ground / blocks
+    for _, g in ipairs(GroundObjects) do
+        DrawTileSprite(Sprites.block, g.x, g.y, g.width, g.height, 0.55, 0.35, 0.2)
+    end
+    for _, b in ipairs(BlockObjects) do
+        DrawTileSprite(Sprites.block, b.x, b.y, b.width, b.height, 0.45,0.45,0.45)
+    end
+    -- draw transparent blocks (no collision)
+    for _, t in ipairs(TransparentObjects) do
+        DrawTileSprite(Sprites.transparent or Sprites.block, t.x, t.y, t.width, t.height, 0.7,0.7,0.7)
+    end
+    -- draw platforms (top-only, half height)
+    for _, p in ipairs(PlatformObjects) do
+        DrawTileSprite(Sprites.platform or Sprites.block, p.x, p.y, p.width, p.height, 0.3,0.6,1)
+    end
+    -- draw spikes
+    for _, s in ipairs(SpikeObjects) do
+        DrawTileSprite(Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
+    end
+    for _, s in ipairs(MiniSpikeObjects) do
+        DrawTileSprite(Sprites.minispike or Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
+    end
+    for _, s in ipairs(BigSpikeObjects) do
+        DrawTileSprite(Sprites.bigspike or Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
+    end
+    for _, s in pairs(FlippedMiniSpikeObjects) do 
+        DrawTileSprite(Sprites.flippedminispike or Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
+    end
+    -- coins
+    for _, c in ipairs(CoinObjects) do
+        if not c.collected then
+            DrawTileSprite(Sprites.coin, c.x + 6, c.y + 6, c.width - 12, c.height - 12, 1,1,0)
+        end
+    end
+    -- finish
+    for _, f in ipairs(FinishObjects) do
+        DrawTileSprite(nil, f.x, f.y, f.width, f.height, 0.2,1,0.2)
+    end
+end
+
 local function DrawButton(btn)
     love.graphics.setColor(1,1,1)
     love.graphics.rectangle("line", btn.x, btn.y, btn.width, btn.height)
@@ -285,57 +347,29 @@ function love.draw()
 
     elseif GameState.active == GameState.levelselect then
         love.graphics.printf("Select Level", 0, 100, WindowWidth, "center")
-        for _, lvl in ipairs(LevelButtons) do DrawButton(lvl) end
+        for i, btn in ipairs(LevelButtons) do DrawButton(btn)end
 
     elseif GameState.active == GameState.play then
-        -- draw ground / blocks
-        for _, g in ipairs(GroundObjects) do
-            DrawTileSprite(Sprites.block, g.x, g.y, g.width, g.height, 0.55, 0.35, 0.2)
-        end
-        for _, b in ipairs(BlockObjects) do
-            DrawTileSprite(Sprites.block, b.x, b.y, b.width, b.height, 0.45,0.45,0.45)
-        end
 
-        -- draw transparent blocks (no collision)
-        for _, t in ipairs(TransparentObjects) do
-            DrawTileSprite(Sprites.transparent or Sprites.block, t.x, t.y, t.width, t.height, 0.7,0.7,0.7)
-        end
-
-        -- draw platforms (top-only, half height)
-        for _, p in ipairs(PlatformObjects) do
-            DrawTileSprite(Sprites.platform or Sprites.block, p.x, p.y, p.width, p.height, 0.3,0.6,1)
-        end
-
-        -- draw spikes
-        for _, s in ipairs(SpikeObjects) do
-            DrawTileSprite(Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
-        end
-        for _, s in ipairs(MiniSpikeObjects) do
-            DrawTileSprite(Sprites.minispike or Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
-        end
-        for _, s in ipairs(BigSpikeObjects) do
-            DrawTileSprite(Sprites.bigspike or Sprites.spike, s.x, s.y, s.width, s.height, 1,0,0)
-        end
-
-        -- coins
-        for _, c in ipairs(CoinObjects) do
-            if not c.collected then
-                DrawTileSprite(Sprites.coin, c.x + 6, c.y + 6, c.width - 12, c.height - 12, 1,1,0)
-            end
-        end
-
-        -- finish
-        for _, f in ipairs(FinishObjects) do
-            DrawTileSprite(nil, f.x, f.y, f.width, f.height, 0.2,1,0.2)
-        end
+        Drawblock()
 
         -- player
-        DrawTileSprite(Sprites.player, Player.x, Player.y, Player.width, Player.height, 1,0,0)
+        love.graphics.draw(
+        Sprites.player,
+        Player.x + Player.width/2,   -- center X
+        Player.y + Player.height/2,  -- center Y
+        Player.rotation,             -- rotation angle
+        Player.width / Sprites.player:getWidth(),    -- scale X
+        Player.height / Sprites.player:getHeight(),  -- scale Y
+        Sprites.player:getWidth()/2, -- origin X (center)
+        Sprites.player:getHeight()/2 -- origin Y (center)
+        )
 
         -- UI
         DrawButton(ButtonPause)
         love.graphics.setColor(0,1,0)
         love.graphics.print("Coins: " .. TotalCoinsCollected, 10, 10)
+        love.graphics.print("Jump:" .. -Player.yVelocity , 10, 50)
         love.graphics.print("Level: " .. (CurrentLevelID or "?"), 10, 30)
         love.graphics.setColor(1,1,1)
 
