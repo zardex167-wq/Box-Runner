@@ -3,13 +3,13 @@
 -- Tile size = 32px
 local L = require ("level")
 local C = require ("conf")
+local sti = require ("Libraries.sti")
 ---------------------------------------------------------
 -- LOVE LOAD
 ---------------------------------------------------------
 function love.load()
     love.window.setTitle("Geo Dash")
     love.window.setMode(WindowWidth, WindowHeight)
-
     if love.filesystem.getInfo("Fonts/PressStart2P-Regular.ttf") then
         Font1 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 28)
         Font  = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 14)
@@ -19,7 +19,6 @@ function love.load()
         Font  = love.graphics.newFont(14)
     end
     love.graphics.setFont(Font)
-
     LoadSprites()
     GameState.active = GameState.menu
 end
@@ -28,68 +27,81 @@ end
 ---------------------------------------------------------
 function UpdatePlayer(dt)
     if not CurrentLevel then return end
-
+    -- store previous Y before applying physics!
+    local prevY = Player.y
+    -- jump
     if love.mouse.isDown(1) and Player.isOnGround then
         Player.yVelocity = JUMP_VELOCITY
     end
-
-        -- Only rotate if player is not on ground
+    -- rotation only while airborne
     if not Player.isOnGround then
         Player.rotation = Player.rotation + Player.rotationSpeed * dt
     else
-        Player.rotation = 0  -- reset rotation when landed
+        Player.rotation = 0
     end
-
+    -- apply physics
     Player.y = Player.y + Player.yVelocity * dt
     Player.yVelocity = Player.yVelocity + Gravity * dt
-
-    -- death if too far below screen
+    -- death condition
     if Player.y > WindowHeight + 200 then
         GameState.active = GameState.gameover
         return
     end
-
     Player.isOnGround = false
-
-    -- generic landing resolver (used for ground, blocks)
+    --------------------------------------------------------
+    -- LANDING COLLISION (Ground + Blocks)
+    --------------------------------------------------------
     local function resolveLanding(list)
         for _, obj in ipairs(list) do
-            -- check if player was above top previously and now overlaps top region
-            if (prevY + Player.height) <= (obj.y + 4) and (Player.y + Player.height) >= obj.y then
-                if Player.x + Player.width > obj.x and Player.x < obj.x + obj.width then
-                    -- place player on top
-                    Player.y = obj.y - Player.height
-                    Player.yVelocity = 0
-                    Player.isOnGround = true
-                    return true
+            -- Only land if falling
+            if Player.yVelocity > 0 then
+                local prevBottom = prevY + Player.height
+                local currBottom = Player.y + Player.height
+                -- crossed top surface
+                if prevBottom <= obj.y and currBottom >= obj.y then
+                    -- horizontal overlap
+                    if Player.x + Player.width > obj.x and Player.x < obj.x + obj.width then
+                        Player.y = obj.y - Player.height
+                        Player.yVelocity = 0
+                        Player.isOnGround = true
+                        return true
+                    end
                 end
             end
         end
         return false
-    end 
-
-    -- prefer landing on block then ground then platform
+    end
+    -- check blocks first, then ground
     if resolveLanding(BlockObjects) then return end
     if resolveLanding(GroundObjects) then return end
-
-    -- platform: top-only collision; stored as half-height with its y at top of platform surface
+    --------------------------------------------------------
+    -- PLATFORM TOP-ONLY COLLISION
+    --------------------------------------------------------
     for _, p in ipairs(PlatformObjects) do
-        if (prevY + Player.height) <= (p.y + 4) and (Player.y + Player.height) >= p.y then
-            if Player.x + Player.width > p.x and Player.x < p.x + p.width then
-                Player.y = p.y - Player.height
-                Player.yVelocity = 0
-                Player.isOnGround = true
-                return
+        if Player.yVelocity > 0 then
+            local prevBottom = prevY + Player.height
+            local currBottom = Player.y + Player.height
+
+            if prevBottom <= p.y and currBottom >= p.y then
+                if Player.x + Player.width > p.x and Player.x < p.x + p.width then
+                    Player.y = p.y - Player.height
+                    Player.yVelocity = 0
+                    Player.isOnGround = true
+                    return
+                end
             end
         end
     end
-
-    -- head bump detection (when moving up into underside of block/ground)
+    --------------------------------------------------------
+    -- HEAD-BUMP COLLISION (Ceiling)
+    --------------------------------------------------------
     local function resolveHeadHit(list)
         for _, obj in ipairs(list) do
-            if AABBRect(Player.x, Player.y, Player.width, Player.height, obj.x, obj.y, obj.width, obj.height) then
+            if AABBRect(Player.x, Player.y, Player.width, Player.height,
+                        obj.x, obj.y, obj.width, obj.height) then
+
+                -- was player below the block last frame?
                 if prevY >= (obj.y + obj.height) then
-                    -- push player below the object and stop upward velocity
                     Player.y = obj.y + obj.height
                     Player.yVelocity = 0
                     return true
@@ -107,7 +119,6 @@ end
 function UpdateObjects(dt)
     if not CurrentLevel then return end
     local speed = CurrentLevel.scrollSpeed or 150
-
     -- Coins: move, collect, cull
     for i = #CoinObjects, 1, -1 do
         local c = CoinObjects[i]
@@ -118,7 +129,6 @@ function UpdateObjects(dt)
         end
         if c.x + c.width < -TILE then table.remove(CoinObjects, i) end
     end
-
     -- Spikes: classic full-tile spikes
     for i = #SpikeObjects, 1, -1 do
         local s = SpikeObjects[i]
@@ -129,7 +139,6 @@ function UpdateObjects(dt)
         end
         if s.x + s.width < -TILE then table.remove(SpikeObjects, i) end
     end
-
     -- Mini spikes (half-height)
     for i = #MiniSpikeObjects, 1, -1 do
         local s = MiniSpikeObjects[i]
@@ -140,7 +149,6 @@ function UpdateObjects(dt)
         end
         if s.x + s.width < -TILE then table.remove(MiniSpikeObjects, i) end
     end
-
     -- Big spikes (double height)
     for i = #BigSpikeObjects, 1, -1 do
         local s = BigSpikeObjects[i]
@@ -151,7 +159,6 @@ function UpdateObjects(dt)
         end
         if s.x + s.width < -TILE then table.remove(BigSpikeObjects, i) end
     end
-
     --FlippedMiniSpikeObjects
     for i = #FlippedMiniSpikeObjects, 1, -1 do
         local s = FlippedMiniSpikeObjects[i]
@@ -162,21 +169,18 @@ function UpdateObjects(dt)
         end
         if s.x + s.width < -TILE then table.remove(FlippedMiniSpikeObjects, i) end
     end
-
     -- Transparent: scroll and cull (no collision)
     for i = #TransparentObjects, 1, -1 do
         local t = TransparentObjects[i]
         t.x = t.x - speed * dt
         if t.x + t.width < -TILE then table.remove(TransparentObjects, i) end
     end
-
     -- Platforms: scroll and cull (top-only collision handled in Player)
     for i = #PlatformObjects, 1, -1 do
         local p = PlatformObjects[i]
         p.x = p.x - speed * dt
         if p.x + p.width < -TILE then table.remove(PlatformObjects, i) end
     end
-
     -- Ground & blocks: move and cull
     for i = #GroundObjects, 1, -1 do
         local g = GroundObjects[i]
@@ -188,7 +192,6 @@ function UpdateObjects(dt)
         b.x = b.x - speed * dt
         if b.x + b.width < -TILE then table.remove(BlockObjects, i) end
     end
-
     -- Finish tiles: move, detect finish, cull
     for i = #FinishObjects, 1, -1 do
         local f = FinishObjects[i]
@@ -219,19 +222,16 @@ function love.mousepressed(x, y, button)
                 end
             end
         end
-
     elseif GameState.active == GameState.play then
         if x >= ButtonPause.x and x <= ButtonPause.x + ButtonPause.width and y >= ButtonPause.y and y <= ButtonPause.y + ButtonPause.height then
             GameState.active = GameState.pause
             return
         end
-
         -- Jump: only while on ground (Geometry Dash style)
         if button == 1 and Player.isOnGround then
             Player.yVelocity = JUMP_VELOCITY
             Player.isOnGround = false
         end
-
     elseif GameState.active == GameState.levelselect then
         for _, lvl in ipairs(LevelButtons) do
             if x >= lvl.x and x <= lvl.x + lvl.width and y >= lvl.y and y <= lvl.y + lvl.height then
@@ -239,7 +239,6 @@ function love.mousepressed(x, y, button)
                 GameState.active = GameState.play
             end
         end
-
     elseif GameState.active == GameState.levelcomplete then
         local b1 = LevelCompleteButtons.next
         local b2 = LevelCompleteButtons.menu
@@ -263,27 +262,27 @@ function love.mousepressed(x, y, button)
         GameState.active = GameState.menu
     end
 end
-
 function love.keypressed(key)
     if key == "escape" then love.event.quit() end
     if key == "return" then
         GameState.active = GameState.menu
     end
 end
-
 ---------------------------------------------------------
 -- MAIN UPDATE
 ---------------------------------------------------------
 function love.update(dt)
+    local MAX_DT = 1/30
+    dt = math.min(dt, MAX_DT)
     if GameState.active == GameState.play then
         UpdatePlayer(dt)
         UpdateObjects(dt)
     end
 end
-
 ---------------------------------------------------------
 -- DRAW HELPERS
 ---------------------------------------------------------
+--Drawblock
 local function Drawblock()
     -- draw ground / blocks
     for _, g in ipairs(GroundObjects) do
@@ -324,35 +323,36 @@ local function Drawblock()
         DrawTileSprite(nil, f.x, f.y, f.width, f.height, 0.2,1,0.2)
     end
 end
-
+-- Drawbutton
 local function DrawButton(btn)
     love.graphics.setColor(1,1,1)
     love.graphics.rectangle("line", btn.x, btn.y, btn.width, btn.height)
     love.graphics.printf(btn.text, btn.x, btn.y + 15, btn.width, "center")
     love.graphics.setColor(1,1,1)
 end
-
 ---------------------------------------------------------
 -- DRAW
 ---------------------------------------------------------
 function love.draw()
     love.graphics.setBackgroundColor(0.1,0.1,0.1)
     love.graphics.setFont(Font)
-
     if GameState.active == GameState.menu then
         love.graphics.setFont(Font1)
         love.graphics.printf("Geo Dash", 0, 150, WindowWidth, "center")
         love.graphics.setFont(Font)
         for _, btn in pairs(Buttons) do DrawButton(btn) end
-
     elseif GameState.active == GameState.levelselect then
         love.graphics.printf("Select Level", 0, 100, WindowWidth, "center")
         for i, btn in ipairs(LevelButtons) do DrawButton(btn)end
-
     elseif GameState.active == GameState.play then
-
+        -- Blocks
         Drawblock()
-
+        -- Debug Collision Boxes
+        love.graphics.setColor(0, 1, 0) -- green color
+        for _, block in ipairs(BlockObjects) do
+            love.graphics.rectangle("line", block.x, block.y, block.width, block.height)
+        end
+        love.graphics.setColor(1, 1, 1) -- reset to white
         -- player
         love.graphics.draw(
         Sprites.player,
@@ -364,29 +364,24 @@ function love.draw()
         Sprites.player:getWidth()/2, -- origin X (center)
         Sprites.player:getHeight()/2 -- origin Y (center)
         )
-
         -- UI
         DrawButton(ButtonPause)
         love.graphics.setColor(0,1,0)
         love.graphics.print("Coins: " .. TotalCoinsCollected, 10, 10)
-        love.graphics.print("Jump:" .. -Player.yVelocity , 10, 50)
         love.graphics.print("Level: " .. (CurrentLevelID or "?"), 10, 30)
         love.graphics.setColor(1,1,1)
-
     elseif GameState.active == GameState.levelcomplete then
         love.graphics.setFont(Font1)
         love.graphics.printf("Level Complete!", 0, 200, WindowWidth, "center")
         love.graphics.setFont(Font)
         DrawButton(LevelCompleteButtons.next)
         DrawButton(LevelCompleteButtons.menu)
-
     elseif GameState.active == GameState.gameover then
         love.graphics.printf("Game Over - Click to return", 0, WindowHeight/2-20, WindowWidth, "center")
     elseif GameState.active == GameState.pause then
         love.graphics.printf("Paused - Click to resume", 0, WindowHeight/2-20, WindowWidth, "center")
     end
 end
-
 ---------------------------------------------------------
 -- END
 ---------------------------------------------------------

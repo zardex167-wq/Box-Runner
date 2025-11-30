@@ -7,18 +7,15 @@ SpikeObjects = {}
 CoinObjects = {}
 BlockObjects = {}
 FinishObjects = {}
-
 -- NEW object lists:
 TransparentObjects = {} -- T (no collision)
 PlatformObjects    = {} -- P (top-only collision; half height tile visually if desired)
 MiniSpikeObjects   = {} -- V (half height, 16px tall)
 BigSpikeObjects    = {} -- W (double height, 64px tall)
 FlippedMiniSpikeObjects   = {} -- v 
-
 TotalCoinsCollected = 0
 CurrentLevel = nil
 CurrentLevelID = 1
-
 ---------------------------------------------------------
 -- INLINE LEVELS (supports new chars: T,P,V,W)
 -- Characters: G ground, B block, S spike, C coin, F finish, T transparent, P platform, V minispike, W bigspike
@@ -48,7 +45,6 @@ Levels = {
         "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGF"  --19
         }
     },
-
     [2] = {
         scrollSpeed = Ss,
         rows = {
@@ -73,7 +69,6 @@ Levels = {
         "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGF"  --19
         }
     },
-
     [3] = {
         scrollSpeed = (Ss * 1.4 ),
         rows = {
@@ -98,7 +93,6 @@ Levels = {
         "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGF"  --19
         }
     },
-
     [4] = {
         scrollSpeed = Ss,
         rows = {
@@ -123,7 +117,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGF"  --19
         }
     },
-
     [5] = {
         scrollSpeed = Ss,
         rows = {
@@ -148,7 +141,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGF"  --19
         }
     },
-
     [6] = {
         scrollSpeed = Ss,
         rows = {
@@ -171,7 +163,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [7] = {
         scrollSpeed = Ss,
         rows = {
@@ -193,7 +184,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [8] = {
         scrollSpeed = Ss,
         rows = {
@@ -213,7 +203,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [9] = {
         scrollSpeed = Ss,
         rows = {
@@ -232,7 +221,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [10] = {
         scrollSpeed = Ss,
         rows = {
@@ -251,7 +239,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [11] = {
         scrollSpeed = Ss,
         rows = {
@@ -270,7 +257,6 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
     },
-
     [12] = {
         scrollSpeed = Ss,
         rows = {
@@ -287,161 +273,14 @@ Levels = {
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
         }
-    },
-
-    [13] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "                                                                                ",
-            "            C                                                                   ",
-            "       B        V                                                                ",
-            "             P                                                                    ",
-            "   S                                                                            ",
-            "                  W                                                               ",
-            "                 B                                                               ",
-            "          C                                                                     ",
-            "        B          S       B                                                     ",
-            "                           B                  F                                    ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [14] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "           C                                                                    ",
-            "        B        V                                                               ",
-            "                  P                                                               ",
-            "   S                                                                            ",
-            "                       W                                                         ",
-            "                  B                                                             ",
-            "           C                                                                    ",
-            "        B          S       B                                                     ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [15] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "           C                                                                    ",
-            "        B        V                                                               ",
-            "                   P                                                              ",
-            "   S                                                                            ",
-            "                        W                                                         ",
-            "                  B                                                             ",
-            "           C                                                                    ",
-            "        B          S       B                                                     ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [16] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "         C                                                                      ",
-            "       B        V                                                               ",
-            "                    P                                                             ",
-            "   S                                                                            ",
-            "                       W                                                         ",
-            "                 B                                                              ",
-            "           C                                                                    ",
-            "       B          S       B                                                      ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [17] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "      C                                                                         ",
-            "       B         V                                                              ",
-            "                  P                                                              ",
-            "   S                                                                            ",
-            "                        W                                                         ",
-            "                 B                                                              ",
-            "           C                                                                    ",
-            "       B          S       B                                                      ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [18] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "    C                                                                           ",
-            "       B        V                                                               ",
-            "                  P                                                              ",
-            "   S                                                                            ",
-            "                        W                                                         ",
-            "                 B                                                              ",
-            "           C                                                                    ",
-            "       B          S       B                                                      ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [19] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "      C                                                                         ",
-            "       B        V                                                              ",
-            "                   P                                                             ",
-            "   S                                                                            ",
-            "                        W                                                         ",
-            "                 B                                                              ",
-            "           C                                                                    ",
-            "       B          S       B                                                      ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
-    },
-
-    [20] = {
-        scrollSpeed = Ss,
-        rows = {
-            "                                                                                ",
-            "      C                                                                         ",
-            "       B        V                                                              ",
-            "                   P                                                             ",
-            "   S                                                                            ",
-            "                        W                                                         ",
-            "                 B                                                              ",
-            "           C                                                                    ",
-            "       B          S       B                                                      ",
-            "                            B                 F                                   ",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        }
     }
 }
-
 ---------------------------------------------------------
 -- AABB helper (rectangle vs rectangle)
 ---------------------------------------------------------
 function AABBRect(ax, ay, aw, ah, bx, by, bw, bh)
     return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
 end
-
 ---------------------------------------------------------
 -- LEVEL PARSER: from rows -> object tables
 ---------------------------------------------------------
@@ -452,10 +291,8 @@ function LoadLevel(levelID)
         GameState.active = GameState.menu
         return
     end
-
     CurrentLevelID = levelID
     CurrentLevel = Levels[levelID]
-
     -- clear object lists
     GroundObjects = {}
     SpikeObjects = {}
@@ -467,16 +304,13 @@ function LoadLevel(levelID)
     MiniSpikeObjects = {}
     BigSpikeObjects = {}
     FlippedMiniSpikeObjects = {}
-
     local rows = CurrentLevel.rows
-
     for row = 1, #rows do
         local line = rows[row]
         for col = 1, #line do
             local ch = line:sub(col, col)
             local x = (col - 1) * TILE
             local y = (row - 1) * TILE
-
             if ch == "G" then
                 table.insert(GroundObjects, {x = x, y = y, width = TILE, height = TILE})
             elseif ch == "B" then
@@ -500,11 +334,10 @@ function LoadLevel(levelID)
                 table.insert(BigSpikeObjects, {x = x, y = y - TILE, width = TILE, height = TILE * 2})
             elseif ch == "v" then
                 --
-                table.insert(FlippedMiniSpikeObjects, {x = x, y = y + (TILE/2), width = TILE, height = TILE/2})
+                table.insert(FlippedMiniSpikeObjects, {x = x, y = y + (TILE/4), width = TILE, height = TILE/2})
             end
         end
     end
-
     -- reset player
     Player.x = 100
     Player.y = WindowHeight - 150
@@ -512,5 +345,4 @@ function LoadLevel(levelID)
     Player.isOnGround = false
     TotalCoinsCollected = 0
 end
-
 return level

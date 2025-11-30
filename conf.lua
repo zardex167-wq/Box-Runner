@@ -1,18 +1,14 @@
 -- Conf .lua
-
 local conf = {}
-
 ---------------------------------------------------------
 -- CONFIG / CONSTANTS
 ---------------------------------------------------------
 TILE = 32
 WindowWidth = 800
 WindowHeight = 600
-
 Gravity = (32 * 80)   -- 2560       -- gravity (tuned for snappy jumps)
 JUMP_VELOCITY = (-32 * 22)   --~800    -- initial jump impulse
 Ss = (32 * 6.4)   ---204.8                -- Scroll speed
-
 -- Player
 Player = {
     x = 100,
@@ -24,10 +20,8 @@ Player = {
     rotation = 0,
     rotationSpeed = (math.pi * 2) 
 }
-
 prevX = Player.x
 prevY = Player.y
-
 -- UI / Buttons
 Buttons = {
     start = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Start Game"},
@@ -35,15 +29,17 @@ Buttons = {
     settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"},
     exit = {x = WindowWidth / 2 - 100, y = 430, width = 200, height = 50, text = "Exit"}
 }
-
 ButtonPause = { x = WindowWidth - 110, y = 10, width = 100, height = 30, text = "Pause" }
-
+ButtonsPause = {
+    Resume = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Resume"},
+    Exit = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Exit to Menu"},
+    settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"}
+}
 -- Level complete screen buttons
 LevelCompleteButtons = {
     next = {x = WindowWidth/2 - 120, y = 330, width = 240, height = 50, text = "Next Level"},
     menu = {x = WindowWidth/2 - 120, y = 400, width = 240, height = 50, text = "Back To Menu"}
 }
-
 -- Sprites
 Sprites = {
     block       = nil, -- Sprites/block.png
@@ -56,7 +52,6 @@ Sprites = {
     bigspike    = nil,  -- Sprites/bigspike.png
     flippedminispike = nil -- Sprites/flippedminispike.png
 }
-
 ---------------------------------------------------------
 -- SAFE SPRITE LOADING & DRAW HELPERS
 ---------------------------------------------------------
@@ -67,7 +62,6 @@ local function safeLoad(path)
     end
     return nil
 end
-
 function LoadSprites()
     Sprites.block       = safeLoad("Sprites/block.png")
     Sprites.coin        = safeLoad("Sprites/coin.png")
@@ -79,7 +73,6 @@ function LoadSprites()
     Sprites.bigspike    = safeLoad("Sprites/bigspike.png")
     Sprites.flippedminispike = safeLoad("Sprites/flipped_mini_spike.png")
 end
-
 -- draw sprite scaled to tile area, or fallback colored rect
 function DrawTileSprite(img, x, y, w, h, r, g, b)
     if img then
@@ -99,7 +92,6 @@ function DrawTileSprite(img, x, y, w, h, r, g, b)
         love.graphics.setColor(1,1,1)
     end
 end
-
 ---------------------------------------------------------
 -- GameState
 ---------------------------------------------------------
@@ -113,7 +105,6 @@ GameState = {
     pause = "pause",
     levelcomplete = "levelcomplete"
 }
-
 LevelNames = {
     "Scramble",
     "Platformis",
@@ -136,35 +127,28 @@ LevelNames = {
     "Moonstep",
     "End Shift"
 }
-
 ---------------------------------------------------------
 -- Level Buttons (grid)
 ---------------------------------------------------------
 LevelButtons = {}
-
 do
-    local startX = WindowWidth / 2 - 320
+    local startX = WindowWidth / 2 - 340
     local startY = 200 -- you can adjust this
-    local gapX = 160
-    local gapY = 80
+    local gapX = 180
+    local gapY = 120
     local columns = 4
-    local totalLevels = 20
-
+    local totalLevels = 12
     for i = 1, totalLevels do
         local row = math.floor((i - 1) / columns)
         local col = (i - 1) % columns
-
         table.insert(LevelButtons, {
             x = startX + col * gapX,
             y = startY + row * gapY,
-            width = 140,
-            height = 60,
-            text = "Level " .. i .. " " .. LevelNames[i],
+            width = 160,
+            height = 80,
+            text = "Level " .. i .. " \n\n " .. LevelNames[i],
             id = i
         })
     end
 end
-
-
-
 return conf
