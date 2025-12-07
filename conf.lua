@@ -1,15 +1,21 @@
--- Conf .lua
+-- conf.lua (FULL FIXED VERSION)
 local conf = {}
+
 ---------------------------------------------------------
--- CONFIG / CONSTANTS
+-- GLOBAL CONSTANTS
 ---------------------------------------------------------
 TILE = 32
 WindowWidth = 800
 WindowHeight = 600
-Gravity = (32 * 80)   -- 2560       -- gravity (tuned for snappy jumps)
-JUMP_VELOCITY = (-32 * 22)   --~800    -- initial jump impulse
-Ss = (32 * 6.4)   ---204.8                -- Scroll speed
--- Player
+SB = 64
+
+Gravity = (32 * 80)          -- 2560
+JUMP_VELOCITY = (-32 * 22)   -- -704
+Ss = (32 * 8)              -- ~204.8 scroll speed
+
+---------------------------------------------------------
+-- PLAYER
+---------------------------------------------------------
 Player = {
     x = 100,
     y = 0,
@@ -18,42 +24,74 @@ Player = {
     yVelocity = 0,
     isOnGround = true,
     rotation = 0,
-    rotationSpeed = (math.pi * 2) 
+    rotationSpeed = (math.pi * 4)  -- faster rotation: 4 full rotations per second
 }
-prevX = Player.x
-prevY = Player.y
--- UI / Buttons
+---------------------------------------------------------
+-- UI BUTTONS
+--------------------------------------------------------
+
 Buttons = {
     start = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Start Game"},
     levelselect = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Level Select"},
     settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"},
-    exit = {x = WindowWidth / 2 - 100, y = 430, width = 200, height = 50, text = "Exit"}
+    exit = {x = WindowWidth / 2 - 100, y = 430, width = 200, height = 50, text = "Exit"},
+    credits = {x = WindowWidth - 196, y = WindowHeight - 48, width = 160, height = 40, text = "Credits"},
+    achievements = {x = WindowWidth - 792, y = WindowHeight - 48, width = 240, height = 40, text = "Achievements"},
+    changelog = {x = WindowWidth - 540, y = WindowHeight - 48, width = 200, height = 40, text = "Changelog"},
+    shop = {x = WindowWidth - 328, y = WindowHeight - 48, width = 120, height = 40, text = "Shop"}
 }
+
 ButtonPause = { x = WindowWidth - 110, y = 10, width = 100, height = 30, text = "Pause" }
+
 ButtonsPause = {
     Resume = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Resume"},
-    Exit = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Exit to Menu"},
-    settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"}
+    Exit    = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Exit to Menu"},
+    Settings= {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"}
 }
--- Level complete screen buttons
+
 LevelCompleteButtons = {
     next = {x = WindowWidth/2 - 120, y = 330, width = 240, height = 50, text = "Next Level"},
     menu = {x = WindowWidth/2 - 120, y = 400, width = 240, height = 50, text = "Back To Menu"}
 }
--- Sprites
-Sprites = {
-    block       = nil, -- Sprites/block.png
-    coin        = nil, -- Sprites/coin.png
-    player      = nil, -- Sprites/player.png
-    spike       = nil, -- Sprites/spike.png
-    transparent = nil, -- Sprites/transparent.png
-    platform    = nil, -- Sprites/platform.png
-    minispike   = nil, -- Sprites/minispike.png
-    bigspike    = nil,  -- Sprites/bigspike.png
-    flippedminispike = nil -- Sprites/flippedminispike.png
+
+ButtonsSettings = {
+    Music = {x = SB, y = SB, width = SB*4, height = SB, text = "Music" },
+    MusicOption = {x = 480, y = SB, width = SB*2, height = SB, text = "Y"},
+    Speed = {x = SB, y = SB*2.5, width = SB*4, height = SB, text = "Speed"},
+    SpeedOption = {x = 480, y = SB*2.5, width = SB*2, height = SB, text = "1"},
+    Constrols = {x = SB, y = SB*4, width = SB*4, height = SB, text = "Controls"},
+    ControlOption = {x = 480, y = SB*4, width = SB*2.5, height = SB, text = "Click"},
+    be1 = {x = SB, y = SB*5.5, width = SB*4, height = SB, text = "be1"},
+    be1Option = {x = 480, y = SB*5.5, width = SB*2, height = SB, text = "Null"},
+    be2 = {x = SB, y = SB*7, width = SB*4, height = SB, text = "be2"},
+    be2Option = {x = 480, y = SB*7, width = SB*2, height = SB, text = "Null"},
+    Exit = {x = SB*4, y = SB*8.25, width = SB*4, height = SB, text = "Exit"}
 }
+
+ButtonsShop = {
+    item1 = {x = SB, y = SB, width = SB*6, height = SB, text = "Item 1"},
+    item2 = {x = SB, y = SB*2.5, width = SB*6, height = SB, text = "Item 2"},
+    item3 = {x = SB, y = SB*4, width = SB*6, height = SB, text = "Item 3"},
+    Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+}
+
 ---------------------------------------------------------
--- SAFE SPRITE LOADING & DRAW HELPERS
+-- SPRITE TABLES
+---------------------------------------------------------
+
+Sprites = {
+    block = nil,
+    coin = nil,
+    player = nil,
+    spike = nil,
+    platform = nil,
+    minispike = nil,
+    bigspike = nil,
+    flippedminispike = nil
+}
+
+---------------------------------------------------------
+-- SAFE LOADER
 ---------------------------------------------------------
 local function safeLoad(path)
     if path and love.filesystem.getInfo(path) then
@@ -62,38 +100,39 @@ local function safeLoad(path)
     end
     return nil
 end
+
+---------------------------------------------------------
+-- LOAD ALL SPRITES
+---------------------------------------------------------
 function LoadSprites()
-    Sprites.block       = safeLoad("Sprites/block.png")
-    Sprites.coin        = safeLoad("Sprites/coin.png")
-    Sprites.player      = safeLoad("Sprites/player.png")
-    Sprites.spike       = safeLoad("Sprites/spike.png")
-    Sprites.transparent = safeLoad("Sprites/transparent.png")
-    Sprites.platform    = safeLoad("Sprites/platform.png")
-    Sprites.minispike   = safeLoad("Sprites/minispike.png")
-    Sprites.bigspike    = safeLoad("Sprites/bigspike.png")
+    Sprites.block         = safeLoad("Sprites/block.png")
+    Sprites.coin          = safeLoad("Sprites/coin.png")
+    Sprites.player        = safeLoad("Sprites/player.png")
+    Sprites.spike         = safeLoad("Sprites/spike.png")
+    Sprites.minispike     = safeLoad("Sprites/minispike.png")
+    Sprites.bigspike      = safeLoad("Sprites/bigspike.png")
     Sprites.flippedminispike = safeLoad("Sprites/flipped_mini_spike.png")
 end
--- draw sprite scaled to tile area, or fallback colored rect
+
+---------------------------------------------------------
+-- DRAW TILE (AUTO SCALED)
+---------------------------------------------------------
 function DrawTileSprite(img, x, y, w, h, r, g, b)
     if img then
         local iw, ih = img:getWidth(), img:getHeight()
-        if iw == 0 or ih == 0 then
-            love.graphics.setColor(r or 1, g or 1, b or 1)
-            love.graphics.rectangle("fill", x, y, w, h)
-            love.graphics.setColor(1,1,1)
-            return
-        end
-        local sx, sy = w / iw, h / ih
+        if iw == 0 or ih == 0 then return end
+
         love.graphics.setColor(1,1,1)
-        love.graphics.draw(img, x, y, 0, sx, sy)
+        love.graphics.draw(img, x, y, 0, w/iw, h/ih)
     else
         love.graphics.setColor(r or 1, g or 1, b or 1)
         love.graphics.rectangle("fill", x, y, w, h)
         love.graphics.setColor(1,1,1)
     end
 end
+
 ---------------------------------------------------------
--- GameState
+-- GAME STATE
 ---------------------------------------------------------
 GameState = {
     active = "menu",
@@ -103,52 +142,75 @@ GameState = {
     settings = "settings",
     levelselect = "levelselect",
     pause = "pause",
-    levelcomplete = "levelcomplete"
+    levelcomplete = "levelcomplete",
+    shop = "shop",
+    credits = "credits",
+    achievements = "achievements",
+    changelog = "changelog"
 }
-LevelNames = {
-    "Scramble",
-    "Platformis",
-    "Shadow Run",
-    "Pulse Drift",
-    "Echo Breaker",
-    "Wave Storm",
-    "Neon Bloom",
-    "Frost Edge",
-    "Hyper Dash",
-    "Prism Crash",
-    "Quantum Leap",
-    "Star Burst",
-    "Vibe Flux",
-    "Lava Twist",
-    "Nightfall",
-    "Cyber Hop",
-    "Flash Tracer",
-    "Redwire",
-    "Moonstep",
-    "End Shift"
-}
+
 ---------------------------------------------------------
--- Level Buttons (grid)
+-- LEVEL NAME LIST
+---------------------------------------------------------
+LevelNames = {
+    "Scramble", "Platformis", "Shadow Run", "Pulse Drift",
+    "Echo Breaker", "Wave Storm", "Neon Bloom", "Frost Edge",
+    "Hyper Dash", "Prism Crash", "Quantum Leap", "Star Burst",
+    "Vibe Flux", "Lava Twist", "Nightfall", "Cyber Hop",
+    "Flash Tracer", "Redwire", "Moonstep", "End Shift"
+}
+
+---------------------------------------------------------
+-- LEVEL SELECTION GRID
 ---------------------------------------------------------
 LevelButtons = {}
 do
     local startX = WindowWidth / 2 - 340
-    local startY = 200 -- you can adjust this
+    local startY = 200
     local gapX = 180
     local gapY = 120
     local columns = 4
     local totalLevels = 12
+
     for i = 1, totalLevels do
         local row = math.floor((i - 1) / columns)
         local col = (i - 1) % columns
+
         table.insert(LevelButtons, {
             x = startX + col * gapX,
             y = startY + row * gapY,
             width = 160,
             height = 80,
-            text = "Level " .. i .. " \n\n " .. LevelNames[i],
+            text = "Level " .. i .. "\n\n" .. LevelNames[i],
             id = i
         })
     end
 end
+
+function HandleJumpInput(inputType, inputValue)
+    if not Player.isOnGround then return end
+    
+    local bs4 = ButtonsSettings.ControlOption
+    local shouldJump = false
+    
+    if bs4.text == "Click" then
+        if inputType == "mouse" and inputValue == 1 then
+            shouldJump = true
+        end
+    elseif bs4.text == "Space" then
+        if inputType == "key" and inputValue == "space" then
+            shouldJump = true
+        end
+    elseif bs4.text == "Arrow" then
+        if inputType == "key" and inputValue == "up" then
+            shouldJump = true
+        end
+    end
+    
+    if shouldJump then
+        Player.yVelocity = JUMP_VELOCITY
+        Player.isOnGround = false
+    end
+end
+
 return conf

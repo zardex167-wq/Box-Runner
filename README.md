@@ -4,3 +4,11 @@ The level scrolls automatically — your timing decides everything.
 Jump, dodge, and survive through handcrafted obstacle courses while collecting coins and unlocking new stages.
 One mistake, and the run is over.
 Only perfect timing wins.
+
+CONTROLS 
+LEFT-CLICK = JUMP 
+LEFT-HOLD = KEEP JUMPING
+
+DEVELOPERS:
+    Muhammad Arsal
+    Gotham Kumar

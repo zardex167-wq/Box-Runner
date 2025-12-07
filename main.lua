@@ -1,9 +1,8 @@
 -- main.lua
 -- Geo Dash (with new block types: Transparent, Platform, Mini Spike, Big Spike)
 -- Tile size = 32px
-local L = require ("level")
-local C = require ("conf")
-local sti = require ("Libraries.sti")
+require ("level")
+require ("conf")
 ---------------------------------------------------------
 -- LOVE LOAD
 ---------------------------------------------------------
@@ -13,10 +12,6 @@ function love.load()
     if love.filesystem.getInfo("Fonts/PressStart2P-Regular.ttf") then
         Font1 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 28)
         Font  = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 14)
-    else
-        Font1 = love.graphics.newFont(28)
-        Font2 = love.graphics.newFont(21)
-        Font  = love.graphics.newFont(14)
     end
     love.graphics.setFont(Font)
     LoadSprites()
@@ -29,24 +24,31 @@ function UpdatePlayer(dt)
     if not CurrentLevel then return end
     -- store previous Y before applying physics!
     local prevY = Player.y
-    -- jump
-    if love.mouse.isDown(1) and Player.isOnGround then
-        Player.yVelocity = JUMP_VELOCITY
-    end
-    -- rotation only while airborne
+    local prevX = Player.x
+    
+    -- rotation: continuous while airborne, reset when landing
     if not Player.isOnGround then
+        -- Rotate continuously while in air (like Geometry Dash)
         Player.rotation = Player.rotation + Player.rotationSpeed * dt
+        -- Keep rotation within 0-2π for cleaner values
+        if Player.rotation > math.pi * 2 then
+            Player.rotation = Player.rotation - math.pi * 2
+        end
     else
+        -- Snap to 0 rotation when on ground
         Player.rotation = 0
     end
+    
     -- apply physics
     Player.y = Player.y + Player.yVelocity * dt
     Player.yVelocity = Player.yVelocity + Gravity * dt
+    
     -- death condition
     if Player.y > WindowHeight + 200 then
         GameState.active = GameState.gameover
         return
     end
+    
     Player.isOnGround = false
     --------------------------------------------------------
     -- LANDING COLLISION (Ground + Blocks)
@@ -118,7 +120,7 @@ end
 ---------------------------------------------------------
 function UpdateObjects(dt)
     if not CurrentLevel then return end
-    local speed = CurrentLevel.scrollSpeed or 150
+    local speed = CurrentLevel.scrollSpeed 
     -- Coins: move, collect, cull
     for i = #CoinObjects, 1, -1 do
         local c = CoinObjects[i]
@@ -206,12 +208,12 @@ end
 ---------------------------------------------------------
 -- INPUT: mouse / jump handling
 ---------------------------------------------------------
-function love.mousepressed(x, y, button)
+function love.mousepressed(x, y, button) 
     if GameState.active == GameState.menu then
         for _, btn in pairs(Buttons) do
             if x >= btn.x and x <= btn.x + btn.width and y >= btn.y and y <= btn.y + btn.height then
                 if btn.text == "Start Game" then
-                    LoadLevel(3)
+                    LoadLevel(1)
                     GameState.active = GameState.play
                 elseif btn.text == "Level Select" then
                     GameState.active = GameState.levelselect
@@ -219,18 +221,22 @@ function love.mousepressed(x, y, button)
                     GameState.active = GameState.settings
                 elseif btn.text == "Exit" then
                     love.event.quit()
+                elseif btn.text == "Credits" then
+                    GameState.active = GameState.credits
+                elseif btn.text == "Achievements" then
+                    GameState.active = GameState.achievements
+                elseif btn.text == "Changelog" then
+                    GameState.active = GameState.changelog
+                elseif btn.text == "Shop" then
+                    GameState.active = GameState.shop
                 end
             end
         end
     elseif GameState.active == GameState.play then
+        HandleJumpInput("mouse", button)
         if x >= ButtonPause.x and x <= ButtonPause.x + ButtonPause.width and y >= ButtonPause.y and y <= ButtonPause.y + ButtonPause.height then
             GameState.active = GameState.pause
             return
-        end
-        -- Jump: only while on ground (Geometry Dash style)
-        if button == 1 and Player.isOnGround then
-            Player.yVelocity = JUMP_VELOCITY
-            Player.isOnGround = false
         end
     elseif GameState.active == GameState.levelselect then
         for _, lvl in ipairs(LevelButtons) do
@@ -240,32 +246,108 @@ function love.mousepressed(x, y, button)
             end
         end
     elseif GameState.active == GameState.levelcomplete then
-        local b1 = LevelCompleteButtons.next
-        local b2 = LevelCompleteButtons.menu
-        if x >= b1.x and x <= b1.x + b1.width and y >= b1.y and y <= b1.y + b1.height then
-            local nextID = CurrentLevelID + 1
+        local blc1 = LevelCompleteButtons.next
+        local blc2 = LevelCompleteButtons.menu
+        local nextID = CurrentLevelID + 1
+        if x >= blc1.x and x <= blc1.x + blc1.width and y >= blc1.y and y <= blc1.y + blc1.height then
             if Levels[nextID] then
                 LoadLevel(nextID)
                 GameState.active = GameState.play
-            else
-                GameState.active = GameState.menu
             end
-        end
-        if x >= b2.x and x <= b2.x + b2.width and y >= b2.y and y <= b2.y + b2.height then
+        elseif x >= blc2.x and x <= blc2.x + blc2.width and y >= blc2.y and y <= blc2.y + blc2.height then
             GameState.active = GameState.menu
         end
     elseif GameState.active == GameState.pause then
-        -- click anywhere to resume
-        GameState.active = GameState.play
+        local bp1 = ButtonsPause.Resume
+        local bp2 = ButtonsPause.Exit
+        local bp3 = ButtonsPause.Settings
+            if x >= bp1.x and x <= bp1.x + bp1.width and y >= bp1.y and y <= bp1.y + bp1.height then
+                GameState.active = GameState.play
+            end
+            if x >= bp2.x and x <= bp2.x + bp2.width and y >= bp2.y and y <= bp2.y + bp2.height then
+                GameState.active = GameState.menu
+            end
+            if x >= bp3.x and x <= bp3.x + bp3.width and y >= bp3.y and y <= bp3.y + bp3.height then
+                GameState.active = GameState.settings
+            end
     elseif GameState.active == GameState.gameover then
         -- click returns to menu
         GameState.active = GameState.menu
+    elseif GameState.active == GameState.settings then
+        local bs1 = ButtonsSettings.Exit
+        local bs2 = ButtonsSettings.MusicOption
+        local bs3 = ButtonsSettings.SpeedOption
+        local bs4 = ButtonsSettings.ControlOption
+        local bs5 = ButtonsSettings.be1Option
+        local bs6 = ButtonsSettings.be2Option
+        if x >= bs1.x and x <= bs1.x + bs1.width and y >= bs1.y and y <= bs1.y + bs1.height then
+            GameState.active = GameState.menu
+        elseif x >= bs2.x and x <= bs2.x + bs2.width and y >= bs2.y and y <= bs2.y + bs2.height then
+            -- Cycle Music Options
+            if bs2.text == "Y" then
+                bs2.text = "N"
+            else
+                bs2.text = "Y"
+            end
+        elseif x >= bs3.x and x <= bs3.x + bs3.width and y >= bs3.y and y <= bs3.y + bs3.height then
+            -- Cycle Speed Options
+            if bs3.text == "1" then
+                bs3.text = "1.5"
+                Ss = (32 * 10) -- ~405.6 scroll speed
+            elseif bs3.text == "1.5" then
+                bs3.text = "2"
+                Ss = (32 * 12) -- ~540.8 scroll speed
+            elseif bs3.text == "2" then
+                bs3.text = "2.5"
+                Ss = (32 * 14) -- ~676 scroll speed
+            elseif bs3.text == "2.5" then
+                bs3.text = "3"
+                Ss = (32 * 16) -- ~811.2 scroll speed
+            else
+                bs3.text = "1"
+                Ss = (32 * 86) -- ~204.8 scroll speed
+            end
+        elseif x >= bs4.x and x <= bs4.x + bs4.width and y >= bs4.y and y <= bs4.y + bs4.height then
+            -- Cycle Control Options
+            if bs4.text == "Click" then
+                bs4.text = "Space"
+            elseif bs4.text == "Space" then
+                bs4.text = "Arrow"
+            else
+                bs4.text = "Click"
+            end
+        elseif x >= bs5.x and x <= bs5.x + bs5.width and y >= bs5.y and y <= bs5.y + bs5.height then
+            -- Cycle be1 Options
+            if bs5.text == "Null" then
+                bs5.text = "Option1"
+            elseif bs5.text == "Option1" then
+                bs5.text = "Option2"
+            else
+                bs5.text = "Null"
+            end
+        elseif x >= bs6.x and x <= bs6.x + bs6.width and y >= bs6.y and y <= bs6.y + bs6.height then
+            -- Cycle be2 Options
+            if bs6.text == "Null" then
+                bs6.text = "Option1"
+            elseif bs6.text == "Option1" then
+                bs6.text = "Option2"
+            else
+                bs6.text = "Null"
+            end
+        end
+    elseif GameState.active == GameState.shop then
+    elseif GameState.active == GameState.changelog then
+    elseif GameState.active == GameState.achievements then
+    elseif GameState.active == GameState.credits then
     end
 end
 function love.keypressed(key)
     if key == "escape" then love.event.quit() end
     if key == "return" then
         GameState.active = GameState.menu
+    end
+    if GameState.active == GameState.play then
+        HandleJumpInput("key", key)
     end
 end
 ---------------------------------------------------------
@@ -320,7 +402,7 @@ local function Drawblock()
     end
     -- finish
     for _, f in ipairs(FinishObjects) do
-        DrawTileSprite(nil, f.x, f.y, f.width, f.height, 0.2,1,0.2)
+        DrawTileSprite(nil, f.x, f.y, f.width, f.height, 0.2,0.2,0.2)
     end
 end
 -- Drawbutton
@@ -328,7 +410,6 @@ local function DrawButton(btn)
     love.graphics.setColor(1,1,1)
     love.graphics.rectangle("line", btn.x, btn.y, btn.width, btn.height)
     love.graphics.printf(btn.text, btn.x, btn.y + 15, btn.width, "center")
-    love.graphics.setColor(1,1,1)
 end
 ---------------------------------------------------------
 -- DRAW
@@ -347,11 +428,7 @@ function love.draw()
     elseif GameState.active == GameState.play then
         -- Blocks
         Drawblock()
-        -- Debug Collision Boxes
-        love.graphics.setColor(0, 1, 0) -- green color
-        for _, block in ipairs(BlockObjects) do
-            love.graphics.rectangle("line", block.x, block.y, block.width, block.height)
-        end
+
         love.graphics.setColor(1, 1, 1) -- reset to white
         -- player
         love.graphics.draw(
@@ -379,7 +456,30 @@ function love.draw()
     elseif GameState.active == GameState.gameover then
         love.graphics.printf("Game Over - Click to return", 0, WindowHeight/2-20, WindowWidth, "center")
     elseif GameState.active == GameState.pause then
-        love.graphics.printf("Paused - Click to resume", 0, WindowHeight/2-20, WindowWidth, "center")
+        love.graphics.setFont(Font1)
+        love.graphics.printf("Game Pause", 0, 200, WindowWidth, "center")
+        love.graphics.setFont(Font)
+        DrawButton(ButtonsPause.Settings)
+        DrawButton(ButtonsPause.Resume)
+        DrawButton(ButtonsPause.Exit)
+    elseif GameState.active == GameState.settings then 
+        love.graphics.setFont(Font1)
+        love.graphics.printf("Settings", 100, 16 , WindowHeight, "center")
+        DrawButton(ButtonsSettings.Music)
+        DrawButton(ButtonsSettings.MusicOption)
+        DrawButton(ButtonsSettings.Speed)
+        DrawButton(ButtonsSettings.SpeedOption)
+        DrawButton(ButtonsSettings.Constrols)
+        DrawButton(ButtonsSettings.ControlOption)
+        DrawButton(ButtonsSettings.be1)
+        DrawButton(ButtonsSettings.be1Option)
+        DrawButton(ButtonsSettings.be2)
+        DrawButton(ButtonsSettings.be2Option)
+        DrawButton(ButtonsSettings.Exit)
+    elseif GameState.active == GameState.shop then
+    elseif GameState.active == GameState.changelog then
+    elseif GameState.active == GameState.achievements then
+    elseif GameState.active == GameState.credits then
     end
 end
 ---------------------------------------------------------
