@@ -26,17 +26,12 @@ function UpdatePlayer(dt)
     local prevY = Player.y
     local prevX = Player.x
     
-    -- rotation: continuous while airborne, reset when landing
+    -- rotation: continuous while airborne; when landed we may tween to nearest face
     if not Player.isOnGround then
-        -- Rotate continuously while in air (like Geometry Dash)
-        Player.rotation = Player.rotation + Player.rotationSpeed * dt
-        -- Keep rotation within 0-2π for cleaner values
-        if Player.rotation > math.pi * 2 then
-            Player.rotation = Player.rotation - math.pi * 2
-        end
+    Player.rotation = Player.rotation + Player.rotationSpeed * dt
     else
-        -- Snap to 0 rotation when on ground
-        Player.rotation = 0
+        -- Snap to perfect 0 degrees when grounded
+        Player.rotation = math.floor(Player.rotation / (math.pi / 2) + 0.5) * (math.pi / 2)
     end
     
     -- apply physics
@@ -66,6 +61,20 @@ function UpdatePlayer(dt)
                         Player.y = obj.y - Player.height
                         Player.yVelocity = 0
                         Player.isOnGround = true
+                        -- start smooth snap to nearest 90deg face
+                        local twopi = math.pi * 2
+                        local halfPi = math.pi / 2
+                        local function normalize(a)
+                            a = a % twopi
+                            if a < 0 then a = a + twopi end
+                            return a
+                        end
+                        local startRot = normalize(Player.rotation)
+                        local target = math.floor(startRot / halfPi + 0.5) * halfPi
+                        Player.landSnapTimer = 0
+                        Player.landSnapDuration = 0.12
+                        Player.landStartRotation = startRot
+                        Player.landTargetRotation = target
                         return true
                     end
                 end
@@ -89,6 +98,20 @@ function UpdatePlayer(dt)
                     Player.y = p.y - Player.height
                     Player.yVelocity = 0
                     Player.isOnGround = true
+                    -- start smooth snap to nearest 90deg face (same as ground landing)
+                    local twopi = math.pi * 2
+                    local halfPi = math.pi / 2
+                    local function normalize(a)
+                        a = a % twopi
+                        if a < 0 then a = a + twopi end
+                        return a
+                    end
+                    local startRot = normalize(Player.rotation)
+                    local target = math.floor(startRot / halfPi + 0.5) * halfPi
+                    Player.landSnapTimer = 0
+                    Player.landSnapDuration = 0.12
+                    Player.landStartRotation = startRot
+                    Player.landTargetRotation = target
                     return
                 end
             end
@@ -114,6 +137,33 @@ function UpdatePlayer(dt)
     end
     resolveHeadHit(BlockObjects)
     resolveHeadHit(GroundObjects)
+
+    -- Handle landing snap tween (if scheduled)
+    if Player.isOnGround and Player.landSnapTimer ~= nil then
+        Player.landSnapTimer = Player.landSnapTimer + dt
+        local t = Player.landSnapTimer / Player.landSnapDuration
+        if t >= 1 then
+            -- finished
+            Player.rotation = Player.landTargetRotation % (math.pi * 2)
+            Player.landSnapTimer = nil
+            Player.landSnapDuration = nil
+            Player.landStartRotation = nil
+            Player.landTargetRotation = nil
+        else
+            -- ease-out interpolation on shortest angular path
+            local twopi = math.pi * 2
+            local function shortestDiff(a, b)
+                local diff = (b - a) % twopi
+                if diff > math.pi then diff = diff - twopi end
+                return diff
+            end
+            local tt = 1 - (1 - t) * (1 - t) -- ease-out quad
+            local diff = shortestDiff(Player.landStartRotation, Player.landTargetRotation)
+            Player.rotation = Player.landStartRotation + diff * tt
+            -- keep normalized
+            Player.rotation = Player.rotation % (math.pi * 2)
+        end
+    end
 end
 ---------------------------------------------------------
 -- UPDATE OBJECTS (scroll left; collision checks)
@@ -424,7 +474,7 @@ function love.draw()
         for _, btn in pairs(Buttons) do DrawButton(btn) end
     elseif GameState.active == GameState.levelselect then
         love.graphics.printf("Select Level", 0, 100, WindowWidth, "center")
-        for i, btn in ipairs(LevelButtons) do DrawButton(btn)end
+        for _, btn in ipairs(LevelButtons) do DrawButton(btn)end
     elseif GameState.active == GameState.play then
         -- Blocks
         Drawblock()
@@ -451,35 +501,44 @@ function love.draw()
         love.graphics.setFont(Font1)
         love.graphics.printf("Level Complete!", 0, 200, WindowWidth, "center")
         love.graphics.setFont(Font)
-        DrawButton(LevelCompleteButtons.next)
-        DrawButton(LevelCompleteButtons.menu)
+        for _, btn in pairs(LevelCompleteButtons) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.gameover then
         love.graphics.printf("Game Over - Click to return", 0, WindowHeight/2-20, WindowWidth, "center")
     elseif GameState.active == GameState.pause then
         love.graphics.setFont(Font1)
         love.graphics.printf("Game Pause", 0, 200, WindowWidth, "center")
         love.graphics.setFont(Font)
-        DrawButton(ButtonsPause.Settings)
-        DrawButton(ButtonsPause.Resume)
-        DrawButton(ButtonsPause.Exit)
+        for _, btn in pairs(ButtonsPause) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.settings then 
         love.graphics.setFont(Font1)
         love.graphics.printf("Settings", 100, 16 , WindowHeight, "center")
-        DrawButton(ButtonsSettings.Music)
-        DrawButton(ButtonsSettings.MusicOption)
-        DrawButton(ButtonsSettings.Speed)
-        DrawButton(ButtonsSettings.SpeedOption)
-        DrawButton(ButtonsSettings.Constrols)
-        DrawButton(ButtonsSettings.ControlOption)
-        DrawButton(ButtonsSettings.be1)
-        DrawButton(ButtonsSettings.be1Option)
-        DrawButton(ButtonsSettings.be2)
-        DrawButton(ButtonsSettings.be2Option)
-        DrawButton(ButtonsSettings.Exit)
+        for _, btn in pairs(ButtonsSettings) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.shop then
+        for _, btn in pairs(ButtonsShop) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.changelog then
+        love.graphics.setFont(Font)
+        love.graphics.printf("Changelog", 100, 16 , WindowHeight, "center" )
+        for _, btn in pairs(ButtonsChangelog) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.achievements then
+        for _, btn in pairs(ButtonsAchievements) do
+            DrawButton(btn)
+        end
     elseif GameState.active == GameState.credits then
+        love.graphics.setFont(Font1)
+        love.graphics.printf("Credits", 100, 16 , WindowHeight, "center")
+        for _, btn in pairs(ButtonsCredits) do
+            DrawButton(btn)
+        end
     end
 end
 ---------------------------------------------------------

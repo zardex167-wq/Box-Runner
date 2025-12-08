@@ -24,7 +24,7 @@ Player = {
     yVelocity = 0,
     isOnGround = true,
     rotation = 0,
-    rotationSpeed = (math.pi * 4)  -- faster rotation: 4 full rotations per second
+    rotationSpeed = (math.pi * 2), -- radians per second
 }
 ---------------------------------------------------------
 -- UI BUTTONS
@@ -72,6 +72,31 @@ ButtonsShop = {
     item1 = {x = SB, y = SB, width = SB*6, height = SB, text = "Item 1"},
     item2 = {x = SB, y = SB*2.5, width = SB*6, height = SB, text = "Item 2"},
     item3 = {x = SB, y = SB*4, width = SB*6, height = SB, text = "Item 3"},
+    Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+}
+
+ButtonsAchievements = {
+    achievement1 = {x = SB, y = SB, width = SB*6, height = SB, text = "Achievement 1"},
+    achievement2 = {x = SB, y = SB*2.5, width = SB*6, height = SB, text = "Achievement 2"},
+    achievement3 = {x = SB, y = SB*4, width = SB*6, height = SB, text = "Achievement 3"},
+    Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+}
+
+ButtonsChangelog = {
+    changelog1 = {x = SB, y = SB, width = SB*6, height = SB, text = "Update1.0"},
+    changelog2 = {x = SB, y = SB*2.5, width = SB*6, height = SB, text = "Update1.1"},
+    changelog3 = {x = SB, y = SB*4, width = SB*6, height = SB, text = "Update1.2"},
+    changelog4 = {x = SB, y = SB*5.5, width = SB*6, height = SB, text = "Update1.3"},
+    changelog5 = {x = SB, y = SB*7, width = SB*6, height = SB, text = "Update1.4"},
+    changelog6 = {x = SB, y = SB*8.5, width = SB*6, height = SB, text = "Update1.5"},
+    Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+}
+
+ButtonsCredits = {
+    credit1 = {x = SB, y = SB, width = SB*10.5, height = SB, text = "Developer/Designer:"},
+    credit1name = {x = SB*2, y = SB*2.16, width = SB*8, height = SB, text = "Muhammad Arsal"},
+    credit2 = {x = SB*2.24, y = SB*4, width = SB*7.5, height = SB, text = "Helper/Music:"},
+    credit2name = {x = SB*2.32, y = SB*5.16, width = SB*7, height = SB, text = "Gotham Kumar"},
     Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
 }
 
