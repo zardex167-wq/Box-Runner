@@ -3,6 +3,7 @@
 -- Tile size = 32px
 require ("level")
 require ("conf")
+Bg = require ("backgroundstate")
 ---------------------------------------------------------
 -- LOVE LOAD
 ---------------------------------------------------------
@@ -16,6 +17,7 @@ function love.load()
     love.graphics.setFont(Font)
     LoadSprites()
     GameState.active = GameState.menu
+    Bg.Load()
 end
 ---------------------------------------------------------
 -- UPDATE PLAYER (Geometry Dash style) - improved
@@ -410,6 +412,7 @@ function love.update(dt)
         UpdatePlayer(dt)
         UpdateObjects(dt)
     end
+    Bg.Update(dt)
 end
 ---------------------------------------------------------
 -- DRAW HELPERS
@@ -457,6 +460,7 @@ local function Drawblock()
 end
 -- Drawbutton
 local function DrawButton(btn)
+    love.graphics.setFont(Font)
     love.graphics.setColor(1,1,1)
     love.graphics.rectangle("line", btn.x, btn.y, btn.width, btn.height)
     love.graphics.printf(btn.text, btn.x, btn.y + 15, btn.width, "center")
@@ -465,15 +469,14 @@ end
 -- DRAW
 ---------------------------------------------------------
 function love.draw()
-    love.graphics.setBackgroundColor(0.1,0.1,0.1)
-    love.graphics.setFont(Font)
     if GameState.active == GameState.menu then
         love.graphics.setFont(Font1)
-        love.graphics.printf("Geo Dash", 0, 150, WindowWidth, "center")
+        Bg.Draw()
         love.graphics.setFont(Font)
         for _, btn in pairs(Buttons) do DrawButton(btn) end
     elseif GameState.active == GameState.levelselect then
-        love.graphics.printf("Select Level", 0, 100, WindowWidth, "center")
+        love.graphics.setFont(Font1)
+        Bg.Draw()
         for _, btn in ipairs(LevelButtons) do DrawButton(btn)end
     elseif GameState.active == GameState.play then
         -- Blocks
@@ -499,43 +502,52 @@ function love.draw()
         love.graphics.setColor(1,1,1)
     elseif GameState.active == GameState.levelcomplete then
         love.graphics.setFont(Font1)
-        love.graphics.printf("Level Complete!", 0, 200, WindowWidth, "center")
+        Bg.Draw()
         love.graphics.setFont(Font)
         for _, btn in pairs(LevelCompleteButtons) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.gameover then
-        love.graphics.printf("Game Over - Click to return", 0, WindowHeight/2-20, WindowWidth, "center")
+        love.graphics.setFont(Font1)
+        Bg.Draw()
     elseif GameState.active == GameState.pause then
         love.graphics.setFont(Font1)
-        love.graphics.printf("Game Pause", 0, 200, WindowWidth, "center")
+        Bg.Draw()
         love.graphics.setFont(Font)
         for _, btn in pairs(ButtonsPause) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.settings then 
         love.graphics.setFont(Font1)
-        love.graphics.printf("Settings", 100, 16 , WindowHeight, "center")
+        Bg.Draw()
         for _, btn in pairs(ButtonsSettings) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.shop then
+        love.graphics.setFont(Font1)
+        Bg.Draw()
+        love.graphics.setFont(Font)
         for _, btn in pairs(ButtonsShop) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.changelog then
+        love.graphics.setFont(Font1)
+        Bg.Draw()
         love.graphics.setFont(Font)
-        love.graphics.printf("Changelog", 100, 16 , WindowHeight, "center" )
         for _, btn in pairs(ButtonsChangelog) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.achievements then
+        love.graphics.setFont(Font1)
+        Bg.Draw()
+        love.graphics.setFont(Font)
         for _, btn in pairs(ButtonsAchievements) do
             DrawButton(btn)
         end
     elseif GameState.active == GameState.credits then
         love.graphics.setFont(Font1)
-        love.graphics.printf("Credits", 100, 16 , WindowHeight, "center")
+        Bg.Draw()
+        love.graphics.setFont(Font)
         for _, btn in pairs(ButtonsCredits) do
             DrawButton(btn)
         end

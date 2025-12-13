@@ -7,6 +7,7 @@ local conf = {}
 TILE = 32
 WindowWidth = 800
 WindowHeight = 600
+Title = "Geometry Dash"
 SB = 64
 
 Gravity = (32 * 80)          -- 2560
