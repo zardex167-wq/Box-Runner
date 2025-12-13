@@ -272,10 +272,10 @@ function M.Draw()
     local logoY = 150 + math.sin(state.logoBounce) * 10 -- Bouncing effect
     
     if GameState.active == GameState.menu then
-        love.graphics.setFont(Font3)
+        love.graphics.setFont(state.fontBig)
         love.graphics.setColor(0, 0, 0, 0.5)
         love.graphics.printf("GEOMETRY DASH", 4, logoY, M.CONFIG.window.width, "center")
-        love.graphics.setFont(Font3)
+        love.graphics.setFont(state.fontBig)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("GEOMETRY DASH", 0, logoY, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.levelcomplete then
