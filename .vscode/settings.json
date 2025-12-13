@@ -1,8 +1,5 @@
 {
     "Lua.diagnostics.globals": [
         "love"
-    ],
-    "Lua.diagnostics.disable": [
-        "undefined-global"
     ]
 }

@@ -1,4 +1,4 @@
--- conf.lua (FULL FIXED VERSION)
+-- conf.lua (FULL VERSION)
 local conf = {}
 
 ---------------------------------------------------------
@@ -12,7 +12,7 @@ SB = 64
 
 Gravity = (32 * 80)          -- 2560
 JUMP_VELOCITY = (-32 * 22)   -- -704
-Ss = (32 * 8)              -- ~204.8 scroll speed
+Ss = (32 * 8)                -- 256 scroll speed
 
 ---------------------------------------------------------
 -- PLAYER
@@ -32,22 +32,29 @@ Player = {
 --------------------------------------------------------
 
 Buttons = {
-    start = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Start Game"},
-    levelselect = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Level Select"},
-    settings = {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"},
-    exit = {x = WindowWidth / 2 - 100, y = 430, width = 200, height = 50, text = "Exit"},
-    credits = {x = WindowWidth - 196, y = WindowHeight - 48, width = 160, height = 40, text = "Credits"},
-    achievements = {x = WindowWidth - 792, y = WindowHeight - 48, width = 240, height = 40, text = "Achievements"},
-    changelog = {x = WindowWidth - 540, y = WindowHeight - 48, width = 200, height = 40, text = "Changelog"},
-    shop = {x = WindowWidth - 328, y = WindowHeight - 48, width = 120, height = 40, text = "Shop"}
+    start = {x = SB*4.25, y = 250, width = SB*4, height = 50, text = "Start Game"},
+    levelselect = {x = SB*4.25, y = 310, width = SB*4, height = 50, text = "Level Select"},
+    settings = {x = SB*4.25, y = 370, width = SB*4, height = 50, text = "Settings"},
+    exit = {x = SB*4.25, y = 430, width = SB*4, height = 50, text = "Exit"},
+    credits = {x = 624, y = WindowHeight - 48, width = 160, height = 40, text = "Credits"},
+    achievements = {x = 8, y = WindowHeight - 48, width = SB*4, height = 40, text = "Achievements"},
+    changelog = {x = 272, y = WindowHeight - 48, width = SB*3.25, height = 40, text = "Changelog"},
+    shop = {x = 488, y = WindowHeight - 48, width = SB*2, height = 40, text = "Shop"}
 }
 
-ButtonPause = { x = WindowWidth - 110, y = 10, width = 100, height = 30, text = "Pause" }
+ButtonPause = {
+     x = WindowWidth - 110, y = 10, width = 100, height = 30, text = "Pause" 
+}
 
 ButtonsPause = {
     Resume = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Resume"},
     Exit    = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Exit to Menu"},
     Settings= {x = WindowWidth / 2 - 100, y = 370, width = 200, height = 50, text = "Settings"}
+}
+
+ButtonsGameover = {
+    Retry = {x = WindowWidth / 2 - 100, y = 250, width = 200, height = 50, text = "Retry"},
+    Exit = {x = WindowWidth / 2 - 100, y = 310, width = 200, height = 50, text = "Exit to Menu"}
 }
 
 LevelCompleteButtons = {
@@ -84,13 +91,16 @@ ButtonsAchievements = {
 }
 
 ButtonsChangelog = {
-    changelog1 = {x = SB, y = SB, width = SB*6, height = SB, text = "Update1.0"},
-    changelog2 = {x = SB, y = SB*2.5, width = SB*6, height = SB, text = "Update1.1"},
-    changelog3 = {x = SB, y = SB*4, width = SB*6, height = SB, text = "Update1.2"},
-    changelog4 = {x = SB, y = SB*5.5, width = SB*6, height = SB, text = "Update1.3"},
-    changelog5 = {x = SB, y = SB*7, width = SB*6, height = SB, text = "Update1.4"},
-    changelog6 = {x = SB, y = SB*8.5, width = SB*6, height = SB, text = "Update1.5"},
-    Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+    changelog1 = {x = SB, y = SB, width = SB*6, height = SB/2, text = "Update1.0"},
+    changelog2 = {x = SB, y = SB*1.75, width = SB*6, height = SB/2, text = "Update1.1"},
+    changelog3 = {x = SB, y = SB*2.5, width = SB*6, height = SB/2, text = "Update1.2"},
+    changelog4 = {x = SB, y = SB*3.25, width = SB*6, height = SB/2, text = "Update1.3"},
+    changelog5 = {x = SB, y = SB*4, width = SB*6, height = SB/2, text = "Update1.4"},
+    changelog6 = {x = SB, y = SB*4.75, width = SB*6, height = SB/2, text = "Update1.5"},
+    changelog7 = {x = SB, y = SB*5.5, width = SB*6, height = SB/2, text = "Update1.6"},
+    changelog8 = {x = SB, y = SB*6.25, width = SB*6, height = SB/2, text = "Update1.7"},
+    changelog9 = {x = SB, y = SB*7, width = SB*6, height = SB/2, text = "Update1.8"},
+    Exit = {x = SB*4, y = SB*8, width = SB*4, height = SB, text = "Exit"}
 }
 
 ButtonsCredits = {
@@ -99,6 +109,10 @@ ButtonsCredits = {
     credit2 = {x = SB*2.24, y = SB*4, width = SB*7.5, height = SB, text = "Helper/Music:"},
     credit2name = {x = SB*2.32, y = SB*5.16, width = SB*7, height = SB, text = "Gotham Kumar"},
     Exit = {x = SB*4, y = SB*6.5, width = SB*4, height = SB, text = "Exit"}
+}
+
+ButtonsLevelSelect = {
+    Exit = {x = SB*4, y = SB*8.25, width = SB*4, height = SB, text = "Exit"}
 }
 
 ---------------------------------------------------------
@@ -191,11 +205,11 @@ LevelNames = {
 ---------------------------------------------------------
 LevelButtons = {}
 do
-    local startX = WindowWidth / 2 - 340
-    local startY = 200
-    local gapX = 180
-    local gapY = 120
-    local columns = 4
+    local startX = 50
+    local startY = 80
+    local gapX = 240
+    local gapY = 112
+    local columns = 3
     local totalLevels = 12
 
     for i = 1, totalLevels do
@@ -205,37 +219,11 @@ do
         table.insert(LevelButtons, {
             x = startX + col * gapX,
             y = startY + row * gapY,
-            width = 160,
-            height = 80,
-            text = "Level " .. i .. "\n\n" .. LevelNames[i],
+            width = 220,
+            height = 96,
+            text = "Level " .. i .. "\n" .. LevelNames[i],
             id = i
         })
-    end
-end
-
-function HandleJumpInput(inputType, inputValue)
-    if not Player.isOnGround then return end
-    
-    local bs4 = ButtonsSettings.ControlOption
-    local shouldJump = false
-    
-    if bs4.text == "Click" then
-        if inputType == "mouse" and inputValue == 1 then
-            shouldJump = true
-        end
-    elseif bs4.text == "Space" then
-        if inputType == "key" and inputValue == "space" then
-            shouldJump = true
-        end
-    elseif bs4.text == "Arrow" then
-        if inputType == "key" and inputValue == "up" then
-            shouldJump = true
-        end
-    end
-    
-    if shouldJump then
-        Player.yVelocity = JUMP_VELOCITY
-        Player.isOnGround = false
     end
 end
 
