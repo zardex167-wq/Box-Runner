@@ -75,6 +75,10 @@ function M.Load()
     love.window.setMode(M.CONFIG.window.width, M.CONFIG.window.height)
     love.window.setTitle(Title)
 
+    -- ensure fonts exist (safe fallbacks)
+    state.fontBig = Font3 or Font1
+    state.fontSmall = Font or Font1
+
     -- Initialize Particles
     for i = 1, M.CONFIG.particles.count do
         table.insert(state.particles, {
@@ -88,6 +92,75 @@ function M.Load()
             alpha = math.random(2, 8) / 10
         })
     end
+end
+
+-- theme presets for per-level visuals
+M.Themes = {
+    default = {},
+    neon = {
+        colors = {cycleSpeed = 12, backgroundDarkness = 0.18, glowIntensity = 0.9},
+        grid = {size = 48, speed = 36, alpha = 0.18},
+        particles = {count = 80, minSize = 10, maxSize = 42, minSpeed = 30, maxSpeed = 90}
+    },
+    ice = {
+        colors = {cycleSpeed = 6, backgroundDarkness = 0.12, glowIntensity = 0.35},
+        particles = {count = 70, minSize = 12, maxSize = 48, minSpeed = 20, maxSpeed = 60},
+        ground = {height = 140}
+    },
+    lava = {
+        colors = {cycleSpeed = 14, backgroundDarkness = 0.16, glowIntensity = 1.0},
+        particles = {count = 48, minSize = 14, maxSize = 60, minSpeed = 40, maxSpeed = 110},
+        grid = {size = 72, speed = 20}
+    },
+    space = {
+        colors = {cycleSpeed = 5, backgroundDarkness = 0.04, glowIntensity = 0.8},
+        particles = {count = 120, minSize = 6, maxSize = 20, minSpeed = 10, maxSpeed = 40},
+        grid = {alpha = 0.06}
+    },
+    cyber = {
+        colors = {cycleSpeed = 18, backgroundDarkness = 0.18, glowIntensity = 1.0},
+        grid = {size = 40, speed = 60, alpha = 0.26},
+        particles = {count = 90, minSize = 8, maxSize = 32, minSpeed = 30, maxSpeed = 90}
+    },
+    frost = {
+        colors = {cycleSpeed = 7, backgroundDarkness = 0.10, glowIntensity = 0.45},
+        particles = {count = 70, minSize = 8, maxSize = 36, minSpeed = 15, maxSpeed = 60},
+        ground = {height = 160}
+    },
+    sunset = {
+        colors = {cycleSpeed = 8, backgroundDarkness = 0.22, glowIntensity = 0.6},
+        grid = {size = 60, speed = 28}
+    },
+    forest = {
+        colors = {cycleSpeed = 4, backgroundDarkness = 0.16, glowIntensity = 0.4},
+        particles = {count = 56, minSize = 10, maxSize = 45},
+    },
+    prism = {
+        colors = {cycleSpeed = 22, backgroundDarkness = 0.2, glowIntensity = 1.0},
+        grid = {size = 30, alpha = 0.35},
+        particles = {count = 100, minSize = 6, maxSize = 36}
+    },
+    quantum = {
+        colors = {cycleSpeed = 26, backgroundDarkness = 0.06, glowIntensity = 1.0},
+        particles = {count = 110, minSize = 4, maxSize = 40, minSpeed = 20, maxSpeed = 120}
+    }
+}
+
+-- Apply a named theme or reset to default; does a shallow merge of CONFIG.
+function M.SetTheme(themeName)
+    local theme = M.Themes[themeName or "default"]
+    if not theme then return end
+    -- shallow merge tables for known sections
+    for k, v in pairs(theme) do
+        if type(v) == "table" and type(M.CONFIG[k]) == "table" then
+            for kk, vv in pairs(v) do M.CONFIG[k][kk] = vv end
+        else
+            M.CONFIG[k] = v
+        end
+    end
+    -- refresh some state depending on possible changes
+    state.bgScroll = 0
+    state.groundScroll = 0
 end
 
 function M.Update(dt)

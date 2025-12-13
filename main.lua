@@ -12,10 +12,10 @@ Music = require("music")
 function love.load()
     love.window.setTitle("Geo Dash")
     love.window.setMode(WindowWidth, WindowHeight)
-    if love.filesystem.getInfo("Fonts/PressStart2P-Regular.ttf") then
-        Font1 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 28)
-        Font2 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 20)
-        Font3 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 48)
+        if love.filesystem.getInfo("Fonts/PressStart2P-Regular.ttf") then
+            Font1 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 28)
+            Font2 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 18)
+            Font3 = love.graphics.newFont("Fonts/PressStart2P-Regular.ttf", 72)
     end
     LoadSprites()
     Music.Init()
@@ -24,7 +24,9 @@ function love.load()
         Music.Play()
     end
     GameState.active = GameState.menu
-    Bg.Load()
+        Bg.Load()
+        -- Ensure theme is applied for the default menu level
+        if Bg and Bg.SetTheme then Bg.SetTheme("default") end
 end
 ---------------------------------------------------------
 -- UPDATE PLAYER (Geometry Dash style) - improved
