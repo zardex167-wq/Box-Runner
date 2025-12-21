@@ -25,7 +25,8 @@ CurrentLevelID = 1
 Levels = {
     -- LEVELS 1-4: WIDTH 320 TILES (easy to medium - 40 seconds)
     [1] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 0.85,
+        theme = "default",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                    F", --1
         "                                                                                                                                                                                                                                                                                                                                    F", --2
@@ -49,7 +50,8 @@ Levels = {
         }
     },
     [2] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 0.9,
+        theme = "neon",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                    F", --1
         "                                                                                                                                                                                                                                                                                                                                    F", --2
@@ -73,7 +75,8 @@ Levels = {
         }
     },
     [3] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.05,
+        theme = "cyber",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                    F", --1
         "                                                                                                                                                                                                                                                                                                                                    F", --2
@@ -97,7 +100,8 @@ Levels = {
         }
     },
     [4] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 0.95,
+        theme = "sunset",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                    F", --1
         "                                                                                                                                                                                                                                                                                                                                    F", --2
@@ -122,7 +126,8 @@ Levels = {
     },
     -- LEVELS 5-8: WIDTH 640 TILES (medium to hard - 80 seconds)
     [5] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.15,
+        theme = "lava",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -146,7 +151,8 @@ Levels = {
         }
     },
     [6] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 0.9,
+        theme = "ice",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -170,7 +176,8 @@ Levels = {
         }
     },
     [7] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 0.95,
+        theme = "forest",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -194,7 +201,8 @@ Levels = {
         }
     },
     [8] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.1,
+        theme = "prism",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -219,7 +227,8 @@ Levels = {
     },
     -- LEVELS 9-12: WIDTH 960 TILES (hard to extreme - 120 seconds)
     [9] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.0,
+        theme = "space",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -243,7 +252,8 @@ Levels = {
         }
     },
     [10] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.2,
+        theme = "frost",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -267,7 +277,8 @@ Levels = {
         }
     },
     [11] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.25,
+        theme = "quantum",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -291,7 +302,8 @@ Levels = {
         }
     },
     [12] = {
-        scrollSpeed = Ss,
+        scrollSpeed = Ss * 1.1,
+        theme = "prism",
         rows = {
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --1
         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             F", --2
@@ -338,6 +350,8 @@ function LoadLevel(levelID)
 
     CurrentLevelID = levelID
     CurrentLevel   = Levels[levelID]
+    -- Apply background theme (if specified by level)
+    if Bg and Bg.SetTheme then Bg.SetTheme(CurrentLevel.theme or "default") end
 
     -- clear object lists
     GroundObjects  = {}

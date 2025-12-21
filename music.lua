@@ -26,6 +26,10 @@ local NOTES = {
     C5 = 523.25,
     D5 = 587.33,
 }
+-- For the sake of simplicity, define missing low octave notes
+NOTES.C3 = NOTES.C4 / 2
+NOTES.F3 = NOTES.F4 and NOTES.F4/2 or 349.23 / 2
+NOTES.G3 = NOTES.G4 and NOTES.G4/2 or 392.00 / 2
 
 -- A tiny melody: note + duration (seconds)
 local melody = {
@@ -39,9 +43,6 @@ local bassline = {
 }
 
 -- For the sake of simplicity, define missing low octave notes
-NOTES.C3 = NOTES.C4 / 2
-NOTES.F3 = 349.23 / 2
-NOTES.G3 = 392.00 / 2
 
 local function square(freq, t)
     local x = math.sin(2 * math.pi * freq * t)

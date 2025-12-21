@@ -76,8 +76,11 @@ function M.Load()
     love.window.setTitle(Title)
 
     -- ensure fonts exist (safe fallbacks)
-    state.fontBig = Font3 or Font1
-    state.fontSmall = Font or Font1
+    -- safe font fallback: runtime fonts set in love.load (Font1/Font/Font2/Font3)
+    local runtimeFontBig = (_G["Font3"] ~= nil) and _G["Font3"] or ((_G["Font1"] ~= nil) and _G["Font1"] or love.graphics.getFont())
+    local runtimeFontSmall = (_G["Font"] ~= nil) and _G["Font"] or ((_G["Font1"] ~= nil) and _G["Font1"] or love.graphics.getFont())
+    state.fontBig = runtimeFontBig
+    state.fontSmall = runtimeFontSmall
 
     -- Initialize Particles
     for i = 1, M.CONFIG.particles.count do
@@ -161,6 +164,20 @@ function M.SetTheme(themeName)
     -- refresh some state depending on possible changes
     state.bgScroll = 0
     state.groundScroll = 0
+    -- recreate particles to match new theme count and ranges
+    state.particles = {}
+    for i = 1, M.CONFIG.particles.count do
+        table.insert(state.particles, {
+            x = math.random(0, M.CONFIG.window.width),
+            y = math.random(-50, M.CONFIG.window.height),
+            size = math.random(M.CONFIG.particles.minSize, M.CONFIG.particles.maxSize),
+            speed = math.random(M.CONFIG.particles.minSpeed, M.CONFIG.particles.maxSpeed),
+            rotation = math.random(0, 360),
+            rotDir = math.random() > 0.5 and 1 or -1,
+            hueOffset = math.random(),
+            alpha = math.random(2, 8) / 10
+        })
+    end
 end
 
 function M.Update(dt)
@@ -274,44 +291,44 @@ function M.Draw()
     if GameState.active == GameState.menu then
         love.graphics.setFont(state.fontBig)
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.printf("GEOMETRY DASH", 4, logoY, M.CONFIG.window.width, "center")
+        love.graphics.printf("GEO DASH", 4, logoY, M.CONFIG.window.width, "center")
         love.graphics.setFont(state.fontBig)
         love.graphics.setColor(r, g, b, 1)
-        love.graphics.printf("GEOMETRY DASH", 0, logoY, M.CONFIG.window.width, "center")
+        love.graphics.printf("GEO DASH", 0, logoY, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.levelcomplete then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("LEVEL COMPLETE", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.gameover then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("GAME OVER", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.pause then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("GAME PAUSED", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.settings then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("SETTINGS", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.shop then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("SHOP", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.changelog then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("CHANGELOG", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.achievements then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("ACHIEVEMENTS", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.credits then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("CREDITS", 0, logoY - 128, M.CONFIG.window.width, "center")
     elseif GameState.active == GameState.levelselect then
-        love.graphics.setFont(Font1)
+        love.graphics.setFont(state.fontSmall)
         love.graphics.setColor(r, g, b, 1)
         love.graphics.printf("LEVEL SELECT", 0, logoY - 128, M.CONFIG.window.width, "center")
     end
