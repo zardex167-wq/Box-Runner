@@ -19,7 +19,6 @@
 
 Tips:
 - Time your jumps precisely when approaching spikes or gaps.
-- Watch the level-specific theme and scroll speed — they affect gameplay feel.
 
 ---
 
@@ -54,7 +53,7 @@ Tips:
 
 ## ❤️ Credits
 - **Muhammad Arsal** — Developer / Designer
-- **Gotham Kumar** — Helper / Music
+- **LoomShade**      — Studio
 
 ---
 

@@ -21,21 +21,15 @@ function PopWindow.Open(title, text, btnSpecs, meta)
     PopWindow.text = text or ""
     PopWindow.buttons = {}
     PopWindow.meta = meta or nil
-
-    -- Responsive modal sizing (mobile-friendly)
-    PopWindow.width = math.min(560, WindowWidth - 64)
-    if IsMobile then
-        PopWindow.height = math.max(220, math.floor(WindowHeight * 0.6))
-    else
-        PopWindow.height = 220
-    end
+    PopWindow.width = math.min(560, WINDOW_WIDTH - 64)
+    PopWindow.height = 220
 
     local btns = btnSpecs or {{ text = "Close", onClick = function() PopWindow.Close() end }}
 
     -- Adjust modal height so buttons and input fields fit.
     local btnCount = #btns
     local btnW, btnH, gap = 220, 36, 16
-    local availW = math.max(1, PopWindow.width - 40) -- account for padding
+    local availW = math.max(1, PopWindow.width - 40) -- for padding
     local totalW = btnCount * btnW + math.max(0, (btnCount - 1)) * gap
     local rows = math.max(1, math.ceil(totalW / availW))
     local colsPerRow = math.ceil(btnCount / rows)
@@ -49,13 +43,13 @@ function PopWindow.Open(title, text, btnSpecs, meta)
     if PopWindow.height < needed then PopWindow.height = needed end
 
     -- Buttons: layout into rows so they wrap nicely
-    local buttonsStartY = WindowHeight/2 + PopWindow.height/2 - 56 - ((rows - 1) * (btnH + 12) / 2)
+    local buttonsStartY = WINDOW_HEIGHT/2 + PopWindow.height/2 - 56 - ((rows - 1) * (btnH + 12) / 2)
     for i, b in ipairs(btns) do
         local row = math.floor((i - 1) / colsPerRow) + 1
         local col = ((i - 1) % colsPerRow) + 1
         local rowCount = (row == rows) and (btnCount - colsPerRow * (rows - 1)) or colsPerRow
         local totalWRow = rowCount * btnW + (rowCount - 1) * gap
-        local startXRow = (WindowWidth - totalWRow) / 2
+        local startXRow = (WINDOW_WIDTH - totalWRow) / 2
         local x = startXRow + (col - 1) * (btnW + gap)
         local y = buttonsStartY + (row - 1) * (btnH + 12)
         local tb = { x = b.x or x, y = b.y or y, width = b.width or btnW, height = b.height or btnH, text = b.text or "Btn", onClick = b.onClick, lineWidth = b.lineWidth or 3 }
@@ -84,7 +78,13 @@ function PopWindow.Open(title, text, btnSpecs, meta)
             table.insert(PopWindow.inputFields, copy)
         end
         -- focus field from meta if provided, otherwise first input by default
-        if #PopWindow.inputFields > 0 then PopWindow.activeField = (PopWindow.meta and PopWindow.meta.focusField) or 1 end
+        if #PopWindow.inputFields > 0 then
+            local focus = (PopWindow.meta and PopWindow.meta.focusField) or 1
+            if type(focus) ~= "number" or focus < 1 or focus > #PopWindow.inputFields then
+                focus = 1
+            end
+            PopWindow.activeField = focus
+        end
     end
 end
 
@@ -114,6 +114,33 @@ end
 
 function PopWindow.ShowMessage(title, text)
     PopWindow.Show(title, text, {{ text = "OK", onClick = function() PopWindow.Close() end }})
+end
+
+-- Show a daily reward popup that details the streak and rewards and allows claiming
+function PopWindow.ShowDailyRewardPopup(streak, coinReward, diamondReward)
+    local text = ("Streak: Day %d\n\nCoins: +%d\nDiamonds: +%d\n\nWould you like to claim your daily reward?"):format(streak, coinReward, diamondReward)
+    local buttons = {
+        { text = "Claim", onClick = function() ClaimDailyDiamonds() end },
+        { text = "Close", onClick = function() PopWindow.Close() end }
+    }
+    PopWindow.Show("Daily Reward", text, buttons)
+end
+
+-- Check daily reward and show popup if claimable
+function PopWindow.CheckDailyReward()
+    local canClaim, streak, message = CheckDailyReward()
+    if canClaim then
+        PopWindow.ShowDailyRewardPopup(streak, 50 + (streak * 10), 1 + math.floor(streak / 3))
+    end
+end
+
+-- Confirmation helper popup
+function PopWindow.ShowConfirm(title, text, onConfirm)
+    local buttons = {
+        { text = "Confirm", onClick = function() pcall(onConfirm) PopWindow.Close() end },
+        { text = "Cancel", onClick = function() PopWindow.Close() end }
+    }
+    PopWindow.Show(title, text, buttons)
 end
 
 function PopWindow.IsOpen()
@@ -163,12 +190,12 @@ function PopWindow.Draw()
     end
 
     -- backdrop (fade in/out)
-    DrawPanel(0, 0, WindowWidth, WindowHeight, { color = {0,0,0,0.7 * progress}, rounding = 0 })
+    DrawPanel(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, { color = {0,0,0,0.7 * progress}, rounding = 0 })
 
     -- modal box scaling (pop effect)
     local mw, mh = PopWindow.width, PopWindow.height
-    local baseX = WindowWidth/2
-    local baseY = WindowHeight/2
+    local baseX = WINDOW_WIDTH/2
+    local baseY = WINDOW_HEIGHT/2
     local scale = 0.9 + 0.1 * progress
     local mw2, mh2 = mw * scale, mh * scale
     local mx = baseX - mw2/2
@@ -248,11 +275,11 @@ function PopWindow.Draw()
 end
 
 function PopWindow.MousePressed(x, y, button)
-    if not PopWindow.active then return false end
+    if not PopWindow.active and not (PopWindow.anim and PopWindow.anim.state == "closing") then return false end
     -- if click outside modal, close by default
     local mw, mh = PopWindow.width, PopWindow.height
-    local mx = WindowWidth/2 - mw/2
-    local my = WindowHeight/2 - mh/2
+    local mx = WINDOW_WIDTH/2 - mw/2
+    local my = WINDOW_HEIGHT/2 - mh/2
 
     -- if clicked inside modal, check buttons first
     for _, btn in ipairs(PopWindow.buttons) do
@@ -294,24 +321,29 @@ end
 
 -- Basic wheel / touch scrolling for pop window text
 function PopWindow.WheelMoved(dx, dy)
-    if not PopWindow.active then return false end
+    if not PopWindow.active and not (PopWindow.anim and PopWindow.anim.state == "closing") then return false end
     -- simple approximation: change textScroll by dy * 20
-    PopWindow.textScroll = (PopWindow.textScroll or 0) + dy * 20
+    local s = (PopWindow.textScroll or 0) + dy * 20
+    -- basic clamping to prevent runaway scroll
+    if s > 0 then s = 0 end
+    if s < -1000 then s = -1000 end
+    PopWindow.textScroll = s
     return true
 end
 
 function PopWindow.TextInput(text)
-    if not PopWindow.active then return false end
+    if not PopWindow.active and not (PopWindow.anim and PopWindow.anim.state == "closing") then return false end
     if not PopWindow.inputFields or not PopWindow.activeField then return false end
     local f = PopWindow.inputFields[PopWindow.activeField]
     if not f then return false end
+    f.value = f.value or ""
     if #f.value >= (f.maxLength or 128) then return true end
     f.value = f.value .. text
     return true
 end
 
 function PopWindow.KeyPressed(key)
-    if not PopWindow.active then return false end
+    if not PopWindow.active and not (PopWindow.anim and PopWindow.anim.state == "closing") then return false end
     -- handle input-related keys
     if PopWindow.inputFields and PopWindow.activeField then
         local f = PopWindow.inputFields[PopWindow.activeField]
@@ -321,6 +353,7 @@ function PopWindow.KeyPressed(key)
             return true
         elseif key == "tab" then
             local n = #PopWindow.inputFields
+            if n == 0 then return false end
             PopWindow.activeField = (PopWindow.activeField % n) + 1
             PopWindow.caretTimer = 0
             PopWindow.caretVisible = true
@@ -328,6 +361,7 @@ function PopWindow.KeyPressed(key)
         elseif key == "up" then
             -- move focus up (wrap)
             local n = #PopWindow.inputFields
+            if n == 0 then return false end
             PopWindow.activeField = ((PopWindow.activeField - 2) % n) + 1
             PopWindow.caretTimer = 0
             PopWindow.caretVisible = true
@@ -335,6 +369,7 @@ function PopWindow.KeyPressed(key)
         elseif key == "down" then
             -- move focus down (wrap)
             local n = #PopWindow.inputFields
+            if n == 0 then return false end
             PopWindow.activeField = (PopWindow.activeField % n) + 1
             PopWindow.caretTimer = 0
             PopWindow.caretVisible = true
@@ -358,9 +393,12 @@ function PopWindow.KeyPressed(key)
 end
 
 function PopWindow.TouchMoved(id, x, y, dx, dy, pressure)
-    if not PopWindow.active then return false end
+    if not PopWindow.active and not (PopWindow.anim and PopWindow.anim.state == "closing") then return false end
     -- use dy in pixel space (world coords handled by caller)
-    PopWindow.textScroll = (PopWindow.textScroll or 0) + dy / (Scale or 1)
+    local s = (PopWindow.textScroll or 0) + dy / (Scale or 1)
+    if s > 0 then s = 0 end
+    if s < -1000 then s = -1000 end
+    PopWindow.textScroll = s
     return true
 end
 
